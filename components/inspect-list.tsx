@@ -1,6 +1,6 @@
 import type { FunctionComponent } from "react";
 
-import { CheckCircleIcon } from "@heroicons/react/solid";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 
 export interface Props {
   items: ItemDetail[];
@@ -17,10 +17,10 @@ export interface ItemDetail {
 export const InspectList: FunctionComponent<Props> = function InspectList({ items }) {
   return (
     <ul role="list" className="divide-y divide-gray-200">
-      {items.map(({ name, label }) => (
+      {items.map(({ name, label, checked }) => (
         <li className="flex items-center py-4 print:py-2" key={name}>
-          <CheckCircleIcon className="mr-1.5 h-5 w-5 text-green-400" />
-          <span className="">{label}</span>
+          {checked ? <CheckCircleIcon className="mx-1.5 h-5 w-5 text-green-400" /> : <XCircleIcon className="mx-1.5 h-5 w-5 text-red-400" />}
+          <span className="text-gray-900">{label}</span>
         </li>
       ))}
     </ul>

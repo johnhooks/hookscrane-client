@@ -4,7 +4,7 @@ import DailyInspectDetailFragment from "../fragments/daily-log-detail";
 
 export default gql`
   mutation createDailyInspect($data: DailyInspectCreateInput!) {
-    createDaily(data: $data) {
+    createDailyInspect(data: $data) {
       ...DailyInspectDetail
     }
     ${DailyInspectDetailFragment}

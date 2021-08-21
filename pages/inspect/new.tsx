@@ -9,6 +9,7 @@ import { format as formatDate } from "date-fns";
 import { useCreateDailyInspectMutation, InspectType } from "generated/types";
 import { TextInput, Props as TextInputProps } from "components/text-input";
 import { InspectChecklist, InspectItem } from "components/inspect-checklist";
+import { DetailList } from "components/detail-list";
 import { mapToDate } from "lib/date";
 
 import craneData from "data/crane-data.json";
@@ -36,6 +37,13 @@ const NewInspect: NextPage = () => {
 
   if (loading) return <p>Submitting...</p>;
   if (error) return <p>Submission error! {error.message}</p>;
+
+  const details = [
+    { name: "vehicle-make", label: "Make", value: craneData.make },
+    { name: "vehicle-model", label: "Model", value: craneData.model },
+    { name: "vehicle-vin", label: "VIN", value: craneData.vin },
+    { name: "owner-id", label: "Owner ID Number", value: craneData.id },
+  ];
 
   const handleDateChange: OnChangeHandler = e => {
     setDate(e.target.value);
@@ -107,28 +115,13 @@ const NewInspect: NextPage = () => {
             </h2>
           </div>
           <div className="mt-12">
+            <DetailList items={details} />
             <form
               action="#"
               method="POST"
-              className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8"
+              className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8 mt-6"
               onSubmit={handleSubmit}
             >
-              <dl>
-                <dt className="text-sm font-medium text-gray-500">Make</dt>
-                <dd className="mt-1 text-sm text-gray-900">{craneData.make}</dd>
-              </dl>
-              <dl>
-                <dt className="text-sm font-medium text-gray-500">Model</dt>
-                <dd className="mt-1 text-sm text-gray-900">{craneData.model}</dd>
-              </dl>
-              <dl>
-                <dt className="text-sm font-medium text-gray-500">VIN</dt>
-                <dd className="mt-1 text-sm text-gray-900">{craneData.vin}</dd>
-              </dl>
-              <dl>
-                <dt className="text-sm font-medium text-gray-500">Identification Number</dt>
-                <dd className="mt-1 text-sm text-gray-900">{craneData.id}</dd>
-              </dl>
               <div>
                 <TextInput
                   type="date"
