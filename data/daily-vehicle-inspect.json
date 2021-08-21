@@ -1,0 +1,42 @@
+[
+  {
+    "name": "service-brake",
+    "label": "Service brake"
+  },
+  {
+    "name": "parking-brake",
+    "label": "Parking brake"
+  },
+  {
+    "name": "lights",
+    "label": "Lighting devices and reflectors"
+  },
+  {
+    "name": "tires",
+    "label": "Tires"
+  },
+  {
+    "name": "horn",
+    "label": "Horn"
+  },
+  {
+    "name": "wipers",
+    "label": "Windshield wipers"
+  },
+  {
+    "name": "mirrors",
+    "label": "Rear vision mirrors"
+  },
+  {
+    "name": "coupling-devices",
+    "label": "Coupling devices"
+  },
+  {
+    "name": "wheels",
+    "label": "Wheels and rims"
+  },
+  {
+    "name": "emergency-equipment",
+    "label": "Emergency equipment"
+  }
+]

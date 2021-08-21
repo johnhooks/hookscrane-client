@@ -1,0 +1,20 @@
+schema: ../api/schema.graphql
+documents: "./graphql/**/*.{tsx,ts}"
+overwrite: true
+generates:
+  ./generated/types.ts:
+    plugins:
+      - add:
+          content: "/* eslint-disable */"
+      - typescript
+      - typescript-operations
+      - typescript-react-apollo
+    # The combined options of all provided plug-ins
+    # More information about the options below:
+    # graphql-code-generator.com/docs/plugins/typescript-react-apollo#configuration
+    config:
+      scalars:
+        DateTime: Date
+      withHOC: false
+      withHooks: true
+      withComponent: false
