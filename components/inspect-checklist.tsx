@@ -1,33 +1,21 @@
-import type { FunctionComponent } from "react";
+import type { PropsWithChildren } from "react";
+import { InspectItemCheckbox, CheckboxProps } from "./inspect-item-checkbox";
 
-import { InspectItemCheckbox } from "./inspect-item-checkbox";
-
-export interface InspectItem {
-  id: string;
+export interface Props<Checkbox extends CheckboxProps> {
   name: string;
-  label: string;
-  checked: boolean;
-  description?: string;
-  note?: string;
+  items: Checkbox[];
 }
 
-export interface Props {
-  name: string;
-  items: InspectItem[];
-  handleToggle: (name: string) => (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-export const InspectChecklist: FunctionComponent<Props> = function InspectChecklist({
+export function InspectChecklist<Checkbox extends CheckboxProps>({
   name,
   items,
-  handleToggle,
-}) {
+}: PropsWithChildren<Props<Checkbox>>) {
   return (
-    <fieldset className="space-y-5">
+    <fieldset className="flex flex-col space-y-4 sm:space-y-6">
       <legend className="sr-only">{name}</legend>
       {items.map(item => (
         <div key={item.id}>
-          <InspectItemCheckbox {...item} onChange={handleToggle(item.name)} />
+          <InspectItemCheckbox {...item} />
         </div>
       ))}
     </fieldset>

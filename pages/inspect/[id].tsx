@@ -26,7 +26,7 @@ const InspectPage: NextPage = () => {
 
   const { data, loading, error } = useDailyInspectByIdQuery({ variables: { id } });
 
-  if (loading) return <p>loading</p>;
+  if (loading) return <p>loading...</p>;
   if (error) throw error;
   if (!data?.dailyInspectById) throw new Error("Not found");
 

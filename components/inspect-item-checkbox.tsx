@@ -1,22 +1,23 @@
-import type { FunctionComponent } from "react";
+import type { PropsWithChildren } from "react";
 
-export interface Props {
+export interface CheckboxProps {
   id: string;
   name: string;
   label: string;
   checked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  description?: string | undefined;
+  description?: string;
+  note?: string;
 }
 
-export const InspectItemCheckbox: FunctionComponent<Props> = function InspectItem({
+export function InspectItemCheckbox<Checkbox extends CheckboxProps>({
   id,
   name,
   label,
   checked,
   onChange,
   description,
-}) {
+}: PropsWithChildren<Checkbox>) {
   return (
     <div className="relative flex items-start">
       <div className="flex items-center h-5">
@@ -42,6 +43,6 @@ export const InspectItemCheckbox: FunctionComponent<Props> = function InspectIte
       </div>
     </div>
   );
-};
+}
 
 export default InspectItemCheckbox;

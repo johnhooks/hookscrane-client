@@ -1,10 +1,62 @@
 [
   {
     "name": "control-mechanisms",
-    "label": "Control mechanisms"
+    "label": "Control mechanisms",
+    "description": "Check control mechanisms for maladjustment interfering with proper operation, also excessive wear of components and contamination by lubricants or other foreign matter."
   },
   {
-    "name": "",
-    "label": ""
+    "name": "safety-devices",
+    "label": "Safety devices",
+    "description": "Check safety devices and operational aid for malfunction."
+  },
+  {
+    "name": "hoses",
+    "label": "Air and hydraulic lines",
+    "description": "Check air and hydraulic lines for deterioration or leakage, particularly those which flex during normal operation."
+  },
+  {
+    "name": "hydraulic",
+    "label": "Hydraulic system",
+    "description": "Check hydraulic system for proper oil level."
+  },
+  {
+    "name": "hooks",
+    "label": "Hooks and latches",
+    "description": "Check hooks and latches for deformation, cracks, excessive wear, or damage such as from chemicals or heat."
+  },
+  {
+    "name": "wire-rope",
+    "label": "Wire rope",
+    "description": "Check wire rope reeving for compliance with manufacturer's specifications. OSHA 1926.1413(a)"
+  },
+  {
+    "name": "electrical",
+    "label": "Electrical system",
+    "description": "Check electrical system for malfunctioning, signs of excessive deterioration, dirt, and moisture accumulation."
+  },
+  {
+    "name": "tires",
+    "label": "Tires",
+    "description": "Check tires for proper inflation and wear."
+  },
+  {
+    "name": "ground-conditions",
+    "label": "Ground conditions",
+    "description": "Check ground conditions around the equipment for proper support, including ground settling under and around outriggers and supporting foundations, ground water accumulation, or similar conditions."
+  },
+  {
+    "name": "level",
+    "label": "Level",
+    "description": "Check the equipment for level position within the tolerances specified by the equipment manufacturer's recommendations, both before each shift and after each move and setup."
+  },
+  {
+    "name": "windows",
+    "label": "Windows",
+    "description": "Check operator cab windows for significant cracks, breaks, or other deficiencies that would hamper the operator's view."
+  },
+  {
+    "name": "carrier",
+    "label": "Carrier parts and equipment",
+    "description": "Check all the following parts, equipment and accessories are in a safe operating condition and free from apparent damage that could cause failure while in use: all vehicle brakes including: parking, emergency and service brakes; horn; steering mechanism; seat belts; operating controls; safety devices; lights; reflectors; windshield wipers; defrosters; and fire extinguishers. OSHA 1926.601(b)(14)"
   }
 ]
