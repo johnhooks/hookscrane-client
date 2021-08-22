@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 
 import {
+  InspectType,
   DailyInspectByIdDocument,
   DailyInspectByIdQuery,
   DailyInspectByIdQueryVariables,
@@ -10,13 +11,11 @@ import {
 } from "generated/types";
 import { initializeApollo } from "lib/apollo-client";
 
-import { InspectList, ItemDetail } from "components/inspect-list";
-import { DetailList } from "components/detail-list";
-import { DateFormat } from "components/date-format";
-import { TimeFormat } from "components/time-format";
+import { DailyInspectShow, InspectItem } from "components/daily-inspect/show";
 
 import craneData from "data/crane-data.json";
-import inspectItemData from "data/daily-vehicle-inspect.json";
+import vehicleInspectItemData from "data/daily-vehicle-inspect.json";
+import craneInspectItemDate from "data/daily-crane-inspection.json";
 
 const InspectPage: NextPage = () => {
   const router = useRouter();
@@ -30,9 +29,12 @@ const InspectPage: NextPage = () => {
   if (error) throw error;
   if (!data?.dailyInspectById) throw new Error("Not found");
 
-  const { hours, meta } = data.dailyInspectById;
+  const { type, hours, datetime, meta } = data.dailyInspectById;
+  const title = type === InspectType.Vehicle ? "Daily Vehicle Inspection" : "Daily Crane Inspection";
   const deficiencies = (meta?.deficiencies as string[]) || [];
-  const items: ItemDetail[] = inspectItemData.map(({ name, label }) => ({
+  const inspectItemData = type === InspectType.Vehicle ? vehicleInspectItemData : craneInspectItemDate;
+  const items: InspectItem[] = inspectItemData.map(({ name, label }) => ({
+    id: `inspect-${name}`,
     name,
     label,
     checked: !deficiencies.includes(name),
@@ -53,40 +55,7 @@ const InspectPage: NextPage = () => {
         <title>Daily Vehicle Inspection - Hooks Crane</title>
         <meta name="description" content={`Daily Vehicle Inspection ID: ${id}`} />
       </Head>
-
-      <div className="bg-white py-16 px-4 overflow-hidden sm:px-6 lg:px-8 lg:py-24 print:text-sm">
-        <div className="max-w-xl mx-auto">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-              Vehicle Inspection
-            </h2>
-            <p className="mt-4 sm:text-xl text-gray-500">
-              <span>
-                <DateFormat date={new Date(data.dailyInspectById.datetime)} />
-              </span>
-              <span className="ml-4">
-                <TimeFormat date={new Date(data.dailyInspectById.datetime)} />
-              </span>
-            </p>
-          </div>
-          <div className="mt-4">
-            <div>
-              <h3 className="text-1xl font-bold tracking-tight text-gray-900 sm:text-2xl">
-                Details
-              </h3>
-            </div>
-            <DetailList items={details} className="mt-4" />
-            <div className="mt-8">
-              <h3 className="text-1xl font-bold tracking-tight text-gray-900 sm:text-2xl">
-                Criteria
-              </h3>
-              <div className="mt-4">
-                <InspectList items={items} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <DailyInspectShow title={title} datetime={new Date(datetime)} details={details} items={items} />
     </>
   );
 };
