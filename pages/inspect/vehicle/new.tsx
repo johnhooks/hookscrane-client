@@ -23,7 +23,11 @@ const NewInspect: NextPage = () => {
   const router = useRouter();
   const [createDailyInspect, { data, loading, error }] = useCreateDailyInspectMutation();
 
-  if (loading) return <p>Submitting...</p>;
+  if (loading) {
+    console.log('HERE')
+    return <p>Submitting...</p>;
+  }
+
   if (error) return <p>Submission error! {error.message}</p>;
 
   const details = [
@@ -73,7 +77,7 @@ const NewInspect: NextPage = () => {
         <title>New Daily Vehicle Inspection - Hooks Crane</title>
         <meta name="description" content="New vehicle inspection form" />
       </Head>
-      <div className="bg-white py-16 px-4 overflow-hidden sm:px-6 lg:px-8 lg:py-24">
+      <div className="py-16 px-4 overflow-hidden sm:px-6 lg:px-8 lg:py-24">
         <div className="max-w-xl mx-auto">
           <div className="text-center mb-4">
             <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 // import { gql } from "@apollo/client";
 // import { useQuery } from '@apollo/client'
 import { useAllDailyInspectsQuery } from "generated/types";
-import { DateFormat } from "components/date-format";
+import { DailyInspectList } from "components/daily-inspect/list";
 
 const Inspect: NextPage = () => {
   const { data, loading, error } = useAllDailyInspectsQuery();
@@ -13,21 +13,16 @@ const Inspect: NextPage = () => {
     <div>
       <Head>
         <title>Inspections - Hooks Crane</title>
-        <meta name="description" content="crane inspections" />
+        <meta name="description" content="List of recent inspections" />
       </Head>
-      <div>
-        <h2 className="text-2xl font-bold">Inspections</h2>
+      <div className="bg-white sm:bg-gray-100 max-w-2xl mx-auto py-16 sm:px-6 lg:px-8 lg:py-24">
+        <div className="text-center">
+          <h2 className="text-xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Recent Inspections</h2>
+        </div>
+        <div className="mt-4 sm:mt-6">
         {loading && <p>loading</p>}
-        {data &&
-          data.allDailyInspects.map((inspect) => (
-            <p key={inspect.id}>
-            <DateFormat date={new Date(inspect.datetime)}/>
-            <span className="ml-4">{inspect.type}</span>
-            <Link href={`/inspect/${inspect.id}`} >
-              view
-            </Link>
-            </p>
-          ))}
+        {data && <DailyInspectList inspects={data.allDailyInspects} />}
+        </div>
       </div>
     </div>
   );

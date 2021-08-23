@@ -55,7 +55,9 @@ const InspectPage: NextPage = () => {
         <title>Daily Vehicle Inspection - Hooks Crane</title>
         <meta name="description" content={`Daily Vehicle Inspection ID: ${id}`} />
       </Head>
-      <DailyInspectShow title={title} datetime={new Date(datetime)} details={details} items={items} />
+      <div className="bg-white sm:bg-gray-100">
+        <DailyInspectShow title={title} datetime={new Date(datetime)} details={details} items={items} />
+      </div>
     </>
   );
 };

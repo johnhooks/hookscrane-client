@@ -74,7 +74,7 @@ const NewInspect: NextPage = () => {
         <title>New Daily Crane Inspection - Hooks Crane</title>
         <meta name="description" content="New crane inspection form" />
       </Head>
-      <div className="bg-white py-16 px-4 overflow-hidden sm:px-6 lg:px-8 lg:py-24">
+      <div className="py-16 px-4 overflow-hidden sm:px-6 lg:px-8 lg:py-24">
         <div className="max-w-xl mx-auto">
           <div className="text-center mb-4">
             <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Daily Crane Inspection</h2>

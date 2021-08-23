@@ -1,11 +1,5 @@
 import { useMemo } from "react";
-import {
-  ApolloClient,
-  ApolloLink,
-  InMemoryCache,
-  HttpLink,
-  NormalizedCacheObject,
-} from "@apollo/client";
+import { ApolloClient, ApolloLink, InMemoryCache, HttpLink, NormalizedCacheObject } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 
 import type { Maybe, AccessToken } from "./interfaces";
@@ -50,14 +44,9 @@ function createApolloClient() {
       onError(({ graphQLErrors, networkError }) => {
         if (graphQLErrors)
           graphQLErrors.forEach(({ message, locations, path }) =>
-            console.log(
-              `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-            )
+            console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`)
           );
-        if (networkError)
-          console.log(
-            `[Network error]: ${networkError}. Backend is unreachable. Is it running?`
-          );
+        if (networkError) console.log(`[Network error]: ${networkError}. Backend is unreachable. Is it running?`);
       }),
       authMiddleware(),
       createIsomorphLink(),
@@ -67,13 +56,9 @@ function createApolloClient() {
   });
 }
 
-export function initializeApollo(
-  initialState: any = null,
-  accessToken?: Maybe<AccessToken>
-) {
+export function initializeApollo(initialState: any = null, accessToken?: Maybe<AccessToken>) {
   inMemoryAccessToken = accessToken || null;
-  const _apolloClient =
-    accessToken || !apolloClient ? createApolloClient() : apolloClient;
+  const _apolloClient = apolloClient ?? createApolloClient();
 
   // If your page has Next.js data fetching methods that use Apollo Client, the initial state
   // get hydrated here
@@ -105,10 +90,7 @@ const client = new ApolloClient({
  * @param initialState
  */
 export function useApollo(initialState: any, accessToken: Maybe<AccessToken>) {
-  const store = useMemo(
-    () => initializeApollo(initialState, accessToken),
-    [initialState, accessToken]
-  );
+  const store = useMemo(() => initializeApollo(initialState, accessToken), [initialState, accessToken]);
   return store;
 }
 
