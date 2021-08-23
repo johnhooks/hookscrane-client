@@ -6,10 +6,7 @@ export interface Props<Checkbox extends CheckboxProps> {
   items: Checkbox[];
 }
 
-export function InspectChecklist<Checkbox extends CheckboxProps>({
-  name,
-  items,
-}: PropsWithChildren<Props<Checkbox>>) {
+export function InspectChecklist<Checkbox extends CheckboxProps>({ name, items }: PropsWithChildren<Props<Checkbox>>) {
   return (
     <fieldset className="flex flex-col space-y-4 sm:space-y-6">
       <legend className="sr-only">{name}</legend>
@@ -20,4 +17,4 @@ export function InspectChecklist<Checkbox extends CheckboxProps>({
       ))}
     </fieldset>
   );
-};
+}

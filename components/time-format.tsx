@@ -6,10 +6,5 @@ interface Props {
 }
 
 export const TimeFormat: FunctionComponent<Props> = ({ date }) => {
-  return (
-    <time dateTime={formatDate(date, "hh:mm")}>
-      {formatDate(date, "h:mm bb")}
-    </time>
-  );
+  return <time dateTime={formatDate(date, "hh:mm")}>{formatDate(date, "h:mm bb")}</time>;
 };
-

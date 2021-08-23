@@ -20,8 +20,8 @@ const Inspect: NextPage = () => {
           <h2 className="text-xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Recent Inspections</h2>
         </div>
         <div className="mt-4 sm:mt-6">
-        {loading && <p>loading</p>}
-        {data && <DailyInspectList inspects={data.allDailyInspects} />}
+          {loading && <p>loading</p>}
+          {data && <DailyInspectList inspects={data.allDailyInspects} />}
         </div>
       </div>
     </div>

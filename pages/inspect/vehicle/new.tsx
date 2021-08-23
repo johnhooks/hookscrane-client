@@ -24,7 +24,7 @@ const NewInspect: NextPage = () => {
   const [createDailyInspect, { data, loading, error }] = useCreateDailyInspectMutation();
 
   if (loading) {
-    console.log('HERE')
+    console.log("HERE");
     return <p>Submitting...</p>;
   }
 

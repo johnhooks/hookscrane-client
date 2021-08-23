@@ -9,14 +9,10 @@ export interface DetailItemProps {
 
 export interface Props<Detail extends DetailItemProps> {
   items: Detail[];
-  className?: string
+  className?: string;
 }
 
-function DetailItem<Detail extends DetailItemProps>({
-  name,
-  label,
-  value,
-}: PropsWithChildren<Detail>) {
+function DetailItem<Detail extends DetailItemProps>({ name, label, value }: PropsWithChildren<Detail>) {
   const labelId = `${name}-display-label`;
   return (
     <div>
@@ -30,10 +26,13 @@ function DetailItem<Detail extends DetailItemProps>({
   );
 }
 
-const baseClassName = "grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6  print:grid-cols-2"
+const baseClassName = "grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6  print:grid-cols-2";
 
-export function DetailList<Detail extends DetailItemProps>({ items, className: classNameProp }: PropsWithChildren<Props<Detail>>) {
-  const className = classNameProp ? baseClassName + " " + classNameProp : baseClassName
+export function DetailList<Detail extends DetailItemProps>({
+  items,
+  className: classNameProp,
+}: PropsWithChildren<Props<Detail>>) {
+  const className = classNameProp ? baseClassName + " " + classNameProp : baseClassName;
   return (
     <dl className={className}>
       {items.map(item => (

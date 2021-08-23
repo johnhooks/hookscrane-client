@@ -58,10 +58,7 @@ export const TextInput: FunctionComponent<Props> = function TextInput({
         )}
       </div>
       {description && (
-        <p
-          id={`${id}-description`}
-          className={`mt-2 text-sm ${invalid ? "text-red-600" : "text-gray-500"}`}
-        >
+        <p id={`${id}-description`} className={`mt-2 text-sm ${invalid ? "text-red-600" : "text-gray-500"}`}>
           {description}
         </p>
       )}
