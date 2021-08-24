@@ -2,21 +2,16 @@ import type { FormEventHandler } from "react";
 import { useState } from "react";
 import type { NextPage } from "next";
 
-import { useLoginMutation } from "generated/types";
+import { useAuth } from "contexts/auth-context";
 
 const Login: NextPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginMutation, { data, loading, error }] = useLoginMutation();
+  const { login } = useAuth();
 
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault();
-    loginMutation({
-      variables: {
-        email,
-        password,
-      },
-    })
+    login(email, password)
       .then(result => {
         console.log(result);
       })

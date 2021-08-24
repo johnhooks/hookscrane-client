@@ -10,32 +10,27 @@ import { subMinutes } from "date-fns";
 import { isString, isDate } from "lodash-es";
 
 import type { Maybe, AccessToken } from "./interfaces";
-// import { LoginDocument } from "generated/types";
+
+import { API_ENDPOINT, LOCAL_API_ENDPOINT } from "./constants";
+
+type useRefreshTokenResult = [boolean, Error?];
 
 const { fetch } = fetchPonyfill();
+const ENDPOINT = typeof window === "undefined" ? (LOCAL_API_ENDPOINT as string) : API_ENDPOINT;
 
 // In memory jwt for client side authorization
 let accessToken: Maybe<AccessToken>;
 
-type useRefreshTokenResult = [boolean, Error?];
-
-/**
- *
- */
 export function useRefreshToken(
   accessToken: Maybe<AccessToken>,
   setAccessToken: Dispatch<SetStateAction<Maybe<AccessToken>>>
 ): useRefreshTokenResult {
-  // const client = useApolloClient();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error>();
 
-  const fetchToken = async () => {
+  async function fetchToken() {
     try {
-      // client.mutate({
-      //   mutation: LoginDocument,
-      // });
-      const response = await fetch(`${URL}/refresh`, {
+      const response = await fetch(`${ENDPOINT}/refresh`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -47,7 +42,7 @@ export function useRefreshToken(
 
       if (response.status === 200) {
         const { token, tokenExpires } = await response.json();
-        setAccessToken({ jwt: token, expires: new Date(tokenExpires) });
+        setAccessToken({ token, tokenExpires: new Date(tokenExpires) });
         setLoading(false);
       } else {
         setError(new Error(response.statusText));
@@ -57,14 +52,14 @@ export function useRefreshToken(
       setError(error as Error);
       setLoading(false);
     }
-  };
+  }
 
   /**
    * Fetch initial accessToken if one was not provided and the cookie
    * refreshTokenExpires seems valid.
    */
   useEffect(() => {
-    if (accessToken && accessToken.expires < new Date()) {
+    if (accessToken && accessToken.tokenExpires < new Date()) {
       setLoading(false);
       return;
     }
@@ -85,6 +80,7 @@ export function useRefreshToken(
     }
 
     fetchToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -97,11 +93,11 @@ export function useRefreshToken(
       if (accessToken) {
         console.log(
           "Token expires in ",
-          Math.floor((subMinutes(accessToken.expires, 2).valueOf() - new Date().valueOf()) / 1000),
+          Math.floor((subMinutes(accessToken.tokenExpires, 2).valueOf() - new Date().valueOf()) / 1000),
           " seconds"
         );
         // If the access token is about to expire, initialize a refresh.
-        if (subMinutes(accessToken.expires, 2) <= new Date()) {
+        if (subMinutes(accessToken.tokenExpires, 2) <= new Date()) {
           fetchToken();
         }
       }
@@ -111,6 +107,7 @@ export function useRefreshToken(
       console.log("cleaning up interval");
       clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
   if (typeof window === "undefined") return [false]; // if SSR
@@ -128,10 +125,10 @@ export function useRefreshToken(
  * If in SSR, the "Set-Cookie" header will be passed from the server to the client.
  */
 export const fetchAccessToken = async (ctx?: GetServerSidePropsContext): Promise<Maybe<AccessToken>> => {
-  const isSSR = typeof window === "undefined" && ctx && ctx.req !== undefined;
-  const cookies = cookie.parse(ctx?.req?.headers?.cookie ?? "");
+  const isSSR = typeof window === "undefined" && ctx?.req !== undefined;
+  const cookies = cookie.parse(isSSR ? ctx.req.headers?.cookie ?? "" : document.cookie);
   const refreshToken: Maybe<string> = cookies.refreshToken;
-  const refreshTokenExpires: Maybe<string> = cookies?.refreshTokenExpires;
+  const refreshTokenExpires: Maybe<string> = cookies.refreshTokenExpires;
 
   let _accessToken: Maybe<AccessToken> = null;
 
@@ -149,12 +146,12 @@ export const fetchAccessToken = async (ctx?: GetServerSidePropsContext): Promise
       "Cache-Control": "no-cache",
     };
 
-    if (isSSR && isString(ctx?.req?.headers?.cookie)) {
+    if (isSSR && isString(ctx.req.headers.cookie)) {
       headers.Cookie = ctx.req.headers.cookie;
     }
 
     try {
-      const response = await fetch(`${URL}/refresh`, {
+      const response = await fetch(`${ENDPOINT}/refresh`, {
         method: "POST",
         credentials: "include",
         headers,
@@ -169,7 +166,7 @@ export const fetchAccessToken = async (ctx?: GetServerSidePropsContext): Promise
           ctx.res.setHeader("Set-Cookie", response.headers.get("Set-Cookie") as string);
         }
 
-        _accessToken = { jwt: token, expires: new Date(tokenExpires) };
+        _accessToken = { token, tokenExpires: new Date(tokenExpires) };
       } else {
         throw new Error(response.statusText);
       }

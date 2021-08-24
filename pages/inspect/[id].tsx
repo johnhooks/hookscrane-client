@@ -10,7 +10,7 @@ import {
   useDailyInspectByIdQuery,
 } from "generated/types";
 import { initializeApollo, addApolloState } from "lib/apollo-client";
-
+import { fetchAccessToken } from "lib/auth";
 import { DailyInspectShow, InspectItem } from "components/daily-inspect/show";
 
 import craneData from "data/crane-data.json";
@@ -73,7 +73,8 @@ export const getServerSideProps: GetServerSideProps = async function (ctx) {
     throw new Error("Not found");
   }
 
-  const apolloClient = initializeApollo(null);
+  const accessToken = await fetchAccessToken(ctx);
+  const apolloClient = initializeApollo(null, accessToken);
 
   await apolloClient.query<DailyInspectByIdQuery, DailyInspectByIdQueryVariables>({
     query: DailyInspectByIdDocument,
@@ -82,9 +83,7 @@ export const getServerSideProps: GetServerSideProps = async function (ctx) {
     },
   });
 
-  return addApolloState(apolloClient, {
-    props: {},
-  });
+  return addApolloState(apolloClient);
 };
 
 export default InspectPage;

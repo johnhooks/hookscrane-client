@@ -33,7 +33,7 @@ const authMiddleware = () =>
     if (inMemoryAccessToken) {
       operation.setContext({
         headers: {
-          Authorization: `Bearer ${inMemoryAccessToken.jwt}`,
+          Authorization: `Bearer ${inMemoryAccessToken.token}`,
         },
       });
     }
@@ -92,7 +92,7 @@ export function initializeApollo(initialState: any = null, accessToken?: Maybe<A
   return _apolloClient;
 }
 
-export function addApolloState(client: ApolloClient<NormalizedCacheObject>, pageProps: any) {
+export function addApolloState(client: ApolloClient<NormalizedCacheObject>, pageProps: any = { props: {} }) {
   if (pageProps?.props) {
     pageProps.props[APOLLO_STATE_PROP_NAME] = client.cache.extract();
   }
