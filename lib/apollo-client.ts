@@ -1,9 +1,15 @@
+import type { AppProps } from "next/app";
+
 import { useMemo } from "react";
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink, NormalizedCacheObject } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
+import merge from "deepmerge";
+import { isEqual } from "lodash-es";
 
 import type { Maybe, AccessToken } from "./interfaces";
 import { API_ENDPOINT, LOCAL_API_ENDPOINT } from "./constants";
+
+export const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 
 let apolloClient: ApolloClient<NormalizedCacheObject> | undefined;
 let inMemoryAccessToken: Maybe<AccessToken>;
@@ -17,15 +23,13 @@ function createIsomorphLink() {
   } else {
     return new HttpLink({
       uri: `${API_ENDPOINT}/graphql`,
-      credentials: "include",
+      credentials: "same-origin",
     });
   }
 }
 
 const authMiddleware = () =>
   new ApolloLink((operation, forward) => {
-    //  accessToken ||= typeof window === "object" && authTools.getAccessToken();
-
     if (inMemoryAccessToken) {
       operation.setContext({
         headers: {
@@ -51,13 +55,13 @@ function createApolloClient() {
       authMiddleware(),
       createIsomorphLink(),
     ]),
-
     cache: new InMemoryCache(),
   });
 }
 
+// From https://github.com/vercel/next.js/blob/canary/examples/with-apollo/lib/apolloClient.js
 export function initializeApollo(initialState: any = null, accessToken?: Maybe<AccessToken>) {
-  inMemoryAccessToken = accessToken || null;
+  inMemoryAccessToken = accessToken ?? null;
   const _apolloClient = apolloClient ?? createApolloClient();
 
   // If your page has Next.js data fetching methods that use Apollo Client, the initial state
@@ -65,33 +69,43 @@ export function initializeApollo(initialState: any = null, accessToken?: Maybe<A
   if (initialState) {
     // Get existing cache, loaded during client side data fetching
     const existingCache = _apolloClient.extract();
-    // Restore the cache using the data passed from getStaticProps/getServerSideProps
-    // combined with the existing cached data
-    _apolloClient.cache.restore({ ...existingCache, ...initialState });
+
+    // Merge the existing cache into data passed from getStaticProps/getServerSideProps
+    const data = merge(initialState, existingCache, {
+      // combine arrays using object equality (like in sets)
+      arrayMerge: (destinationArray, sourceArray) => [
+        ...sourceArray,
+        ...destinationArray.filter(d => sourceArray.every(s => !isEqual(d, s))),
+      ],
+    });
+
+    // Restore the cache with the merged data
+    _apolloClient.cache.restore(data);
   }
+
   // For SSG and SSR always create a new Apollo Client
   if (typeof window === "undefined") return _apolloClient;
+
   // Create the Apollo Client once in the client
   if (!apolloClient) apolloClient = _apolloClient;
 
   return _apolloClient;
 }
 
-const client = new ApolloClient({
-  ssrMode: typeof window === "undefined",
-
-  uri: API_ENDPOINT,
-  cache: new InMemoryCache(),
-});
+export function addApolloState(client: ApolloClient<NormalizedCacheObject>, pageProps: any) {
+  if (pageProps?.props) {
+    pageProps.props[APOLLO_STATE_PROP_NAME] = client.cache.extract();
+  }
+  return pageProps;
+}
 
 /**
  * useApollo React Hook
  * Uses a memo to only return a new client if the `initialState` or `accessToken` change.
  * @param initialState
  */
-export function useApollo(initialState: any, accessToken: Maybe<AccessToken>) {
-  const store = useMemo(() => initializeApollo(initialState, accessToken), [initialState, accessToken]);
+export function useApollo(pageProps: any, accessToken: Maybe<AccessToken>) {
+  const state = pageProps[APOLLO_STATE_PROP_NAME];
+  const store = useMemo(() => initializeApollo(state, accessToken), [state, accessToken]);
   return store;
 }
-
-export default client;

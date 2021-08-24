@@ -9,7 +9,7 @@ import Layout from "components/layout";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [accessToken, setAccessToken] = useState<Maybe<AccessToken>>(null);
-  const apolloClient = useApollo(pageProps.initialApolloState, accessToken);
+  const apolloClient = useApollo(pageProps, accessToken);
 
   return (
     <ApolloProvider client={apolloClient}>

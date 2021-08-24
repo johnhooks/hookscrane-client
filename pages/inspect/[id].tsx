@@ -9,7 +9,7 @@ import {
   DailyInspectByIdQueryVariables,
   useDailyInspectByIdQuery,
 } from "generated/types";
-import { initializeApollo } from "lib/apollo-client";
+import { initializeApollo, addApolloState } from "lib/apollo-client";
 
 import { DailyInspectShow, InspectItem } from "components/daily-inspect/show";
 
@@ -55,14 +55,10 @@ const InspectPage: NextPage = () => {
         <title>Daily Vehicle Inspection - Hooks Crane</title>
         <meta name="description" content={`Daily Vehicle Inspection ID: ${id}`} />
       </Head>
-      <div className="bg-white sm:bg-gray-100">
-        <DailyInspectShow title={title} datetime={new Date(datetime)} details={details} items={items} />
-      </div>
+      <DailyInspectShow title={title} datetime={new Date(datetime)} details={details} items={items} />
     </>
   );
 };
-
-export default InspectPage;
 
 export const getServerSideProps: GetServerSideProps = async function (ctx) {
   if (typeof ctx.params?.id !== "string") {
@@ -86,9 +82,9 @@ export const getServerSideProps: GetServerSideProps = async function (ctx) {
     },
   });
 
-  return {
-    props: {
-      initialApolloState: apolloClient.cache.extract(),
-    },
-  };
+  return addApolloState(apolloClient, {
+    props: {},
+  });
 };
+
+export default InspectPage;

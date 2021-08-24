@@ -1,4 +1,10 @@
 @tailwind base;
+
+body {
+  @apply bg-white;
+  @apply sm:bg-gray-50;
+}
+
 @tailwind components;
 @tailwind utilities;
 

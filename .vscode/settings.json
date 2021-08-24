@@ -36,7 +36,14 @@
   "[typescriptreact]": {
     "editor.formatOnSave": false
   },
-  "cSpell.words": ["dev", "hookscrane", "mimetype", "tsbuildinfo", "webp"],
+  "cSpell.words": [
+    "Ponyfill",
+    "dev",
+    "hookscrane",
+    "mimetype",
+    "tsbuildinfo",
+    "webp"
+  ],
   "cSpell.ignorePaths": [
     "**/package-lock.json",
     "**/node_modules/**",

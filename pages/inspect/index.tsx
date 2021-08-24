@@ -15,13 +15,15 @@ const Inspect: NextPage = () => {
         <title>Inspections - Hooks Crane</title>
         <meta name="description" content="List of recent inspections" />
       </Head>
-      <div className="bg-white sm:bg-gray-100 max-w-2xl mx-auto py-16 sm:px-6 lg:px-8 lg:py-24">
-        <div className="text-center">
-          <h2 className="text-xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Recent Inspections</h2>
-        </div>
-        <div className="mt-4 sm:mt-6">
-          {loading && <p>loading</p>}
-          {data && <DailyInspectList inspects={data.allDailyInspects} />}
+      <div className="max-w-2xl mx-auto">
+        <div className="py-16 sm:px-6 lg:px-8 lg:py-24">
+          <div className="text-center">
+            <h2 className="text-xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Recent Inspections</h2>
+          </div>
+          <div className="mt-4 sm:mt-6">
+            {loading && <p>loading</p>}
+            {data && <DailyInspectList inspects={data.allDailyInspects} />}
+          </div>
         </div>
       </div>
     </div>

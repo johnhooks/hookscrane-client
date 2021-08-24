@@ -16,3 +16,7 @@
 ## Reading
 
 - [Monorepo with Next.js Example](https://github.com/belgattitude/nextjs-monorepo-example)
+
+## VSCode
+
+- [How to Format Code on Save in VS Code with ESlint](https://www.aleksandrhovhannisyan.com/blog/format-code-on-save-vs-code-eslint/)
