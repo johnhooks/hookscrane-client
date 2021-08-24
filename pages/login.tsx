@@ -1,19 +1,30 @@
 import type { FormEventHandler } from "react";
-import { useState } from "react";
-import type { NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 
+import { useState } from "react";
+import { useRouter } from "next/router";
+
+import { fetchAccessToken } from "lib/fetch-access-token";
+import { serverSideRedirect } from "lib/server-side-redirect";
 import { useAuth } from "contexts/auth-context";
 
-const Login: NextPage = () => {
+const LoginPage: NextPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth();
+  const router = useRouter();
+  const { login, user } = useAuth();
+
+  if (typeof window !== "undefined") {
+    if (user) router.push("/");
+  }
 
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault();
+    setEmail("");
+    setPassword("");
     login(email, password)
-      .then(result => {
-        console.log(result);
+      .then(() => {
+        router.push("/");
       })
       .catch(error => {
         throw error;
@@ -114,4 +125,15 @@ const Login: NextPage = () => {
   );
 };
 
-export default Login;
+export const getServerSideProps: GetServerSideProps = async ctx => {
+  const accessToken = await fetchAccessToken(ctx);
+
+  if (accessToken) {
+    // Already logged in, need to figure out how flash messages
+    return serverSideRedirect(ctx, "/me");
+  }
+
+  return { props: {} };
+};
+
+export default LoginPage;

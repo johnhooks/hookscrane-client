@@ -1,9 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
+
 import React, { useState, useEffect, useContext, createContext } from "react";
 import { useApolloClient } from "@apollo/client";
-import { isObject, isString, isDate } from "lodash-es";
+import { isObject, isString } from "lodash-es";
+
 import type { Maybe, AccessToken } from "lib/interfaces";
-import { useRefreshToken } from "lib/auth";
+
+import { useRefreshToken } from "hooks/use-refresh-token";
 import { API_ENDPOINT } from "lib/constants";
 import { MeQuery, MeDocument, User } from "generated/types";
 
@@ -50,13 +53,15 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
       .then(({ data }) => {
         if (data?.me) setUser(data.me);
       })
-      .catch(error => console.log(error.message));
+      .catch(error => {
+        throw new Error(`User data request failed: ${error.message}`);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
   const login = async (email: string, password: string): Promise<void> => {
     if (typeof window === "undefined") {
-      throw new Error("The AuthContext login function should never to be called by server.");
+      throw new Error("The AuthContext login function should never to be called by the server");
     }
     const response = await fetch(`${API_ENDPOINT}/login`, {
       method: "POST",
@@ -68,7 +73,6 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
       body: JSON.stringify({ email, password }),
     });
     const data = await response.json();
-    console.log(data);
     if (isAccessTokenPayload(data)) {
       setAccessToken({ token: data.token, tokenExpires: new Date(data.tokenExpires) });
       console.log(`Successfully logged in`, "info");
@@ -79,11 +83,11 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
 
   const logout = async (): Promise<void> => {
     if (typeof window === "undefined") {
-      throw new Error("The AuthContext logout function should never to be called by server.");
+      throw new Error("The AuthContext logout function should never to be called by the server");
     }
     const response = await fetch(`${API_ENDPOINT}/logout`, {
       method: "POST",
-      credentials: "include",
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
@@ -94,6 +98,13 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
       setUser(null);
       setAccessToken(null);
       window.localStorage.setItem("logoutSync", new Date().toISOString());
+      // https://www.apollographql.com/docs/react/networking/authentication/#reset-store-on-logout
+      // The most straightforward way to ensure that the UI and store state reflects the current user's
+      // permissions is to call client.resetStore() after your login or logout process has completed.
+      // This will cause the store to be cleared and all active queries to be refetched. If you just
+      // want the store to be cleared and don't want to refetch active queries, use client.clearStore()
+      // instead. Another option is to reload the page, which will have a similar effect.
+      location.reload();
       console.log(`Successfully logged out`, "info");
     } else {
       throw new Error("Failed logout attempt");
@@ -104,10 +115,10 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
   return <AuthContext.Provider value={{ loading, user, setUser, login, logout }}>{children}</AuthContext.Provider>;
 };
 
-export function isAccessTokenPayload(value: unknown): value is { token: string; tokenExpires: string } {
+function isAccessTokenPayload(value: unknown): value is { token: string; tokenExpires: string } {
   return (
     isObject(value) &&
-    typeof (value as unknown as AccessToken)?.token === "string" &&
-    typeof (value as unknown as AccessToken)?.tokenExpires === "string"
+    isString((value as unknown as AccessToken).token) &&
+    isString((value as unknown as AccessToken).tokenExpires)
   );
 }

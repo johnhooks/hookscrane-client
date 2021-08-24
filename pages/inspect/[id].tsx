@@ -10,7 +10,7 @@ import {
   useDailyInspectByIdQuery,
 } from "generated/types";
 import { initializeApollo, addApolloState } from "lib/apollo-client";
-import { fetchAccessToken } from "lib/auth";
+import { fetchAccessToken } from "lib/fetch-access-token";
 import { DailyInspectShow, InspectItem } from "components/daily-inspect/show";
 
 import craneData from "data/crane-data.json";

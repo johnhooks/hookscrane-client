@@ -1,12 +1,13 @@
 import type { NextPage } from "next";
-import React from "react";
-import { useQuery } from "@apollo/client";
-import { useRouter } from "next/router";
-import Link from "next/link";
 import type { GetServerSideProps } from "next";
+import React from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useQuery } from "@apollo/client";
 
-import { fetchAccessToken } from "lib/auth";
+import { fetchAccessToken } from "lib/fetch-access-token";
 import { initializeApollo, addApolloState } from "lib/apollo-client";
+import { serverSideRedirect } from "lib/server-side-redirect";
 import { MeQuery, MeDocument } from "generated/types";
 import { useAuth } from "contexts/auth-context";
 
@@ -37,7 +38,7 @@ const MePage: NextPage = () => {
       <div>
         <Link href="/">Home</Link>
       </div>
-      {user && <div>Hello, you are logged in as {data.me.callSign}</div>}
+      {user && <div>Hello, you are logged in as {data.me.email}</div>}
     </>
   );
 };
@@ -46,9 +47,16 @@ export const getServerSideProps: GetServerSideProps = async ctx => {
   const accessToken = await fetchAccessToken(ctx);
   const apolloClient = initializeApollo(null, accessToken);
 
-  await apolloClient.query<MeQuery>({
+  if (!accessToken) return serverSideRedirect(ctx, "/login");
+
+  const { data } = await apolloClient.query<MeQuery>({
     query: MeDocument,
   });
+
+  if (!data?.me) {
+    ctx.res.statusCode = 500;
+    throw new Error(`User data request failed`);
+  }
 
   return addApolloState(apolloClient);
 };
