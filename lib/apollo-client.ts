@@ -23,7 +23,7 @@ function createIsomorphLink() {
   } else {
     return new HttpLink({
       uri: `${API_ENDPOINT}/graphql`,
-      credentials: "same-origin",
+      credentials: "include",
     });
   }
 }

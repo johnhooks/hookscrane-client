@@ -65,7 +65,7 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     }
     const response = await fetch(`${API_ENDPOINT}/login`, {
       method: "POST",
-      credentials: "same-origin",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
@@ -87,7 +87,7 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     }
     const response = await fetch(`${API_ENDPOINT}/logout`, {
       method: "POST",
-      credentials: "same-origin",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",

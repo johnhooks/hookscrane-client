@@ -15,7 +15,7 @@ export function mapToDate({ date, time }: { date: string; time: string }): Date 
   if (!isDateString(date)) throw new Error("Invalid date value");
   if (!isTimeString(time)) throw new Error("Invalid time value");
 
-  const datetime = date + " " + time;
+  const datetime = `${date}T${time}:00`;
   const result = new Date(datetime);
 
   if (result instanceof Date && isNaN(result.valueOf())) {
