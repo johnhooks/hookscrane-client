@@ -74,11 +74,16 @@ const NewInspect: NextPage = () => {
         <title>New Daily Crane Inspection - Hooks Crane</title>
         <meta name="description" content="New crane inspection form" />
       </Head>
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900">Daily Crane Inspection</h1>
+        </div>
+      </header>
       <div className="py-16 px-4 overflow-hidden sm:px-6 lg:px-8 lg:py-24">
         <div className="max-w-xl mx-auto">
-          <div className="text-center mb-4">
+          {/* <div className="text-center mb-4">
             <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Daily Crane Inspection</h2>
-          </div>
+          </div> */}
           <DailyInspect details={details} inspectItems={checkboxesMemo} handleSubmit={handleSubmit} />
         </div>
       </div>

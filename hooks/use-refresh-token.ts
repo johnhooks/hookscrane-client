@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import cookie from "cookie";
 import fetchPonyfill from "fetch-ponyfill";
-import { subMinutes } from "date-fns";
+import { formatDistance, isAfter, subMinutes } from "date-fns";
 import { isDate } from "lodash-es";
 
 import type { Maybe, AccessToken } from "lib/interfaces";
@@ -85,17 +85,14 @@ export function useRefreshToken(
 
     const interval = setInterval(async () => {
       if (accessToken) {
-        console.log(
-          "Token expires in ",
-          Math.floor((subMinutes(accessToken.tokenExpires, 2).valueOf() - new Date().valueOf()) / 1000),
-          " seconds"
-        );
+        const now = new Date();
+        console.log(`Token expires in ${formatDistance(accessToken.tokenExpires, now)}`);
         // If the access token is about to expire, initialize a refresh.
-        if (subMinutes(accessToken.tokenExpires, 2) <= new Date()) {
+        if (subMinutes(accessToken.tokenExpires, 2) <= now) {
           fetchToken();
         }
       }
-    }, 10_000);
+    }, 60_000);
 
     return () => {
       console.log("cleaning up interval");
