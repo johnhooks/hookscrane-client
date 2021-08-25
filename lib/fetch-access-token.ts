@@ -7,6 +7,8 @@ import { isString } from "lodash-es";
 import type { Maybe, AccessToken } from "./interfaces";
 import { API_ENDPOINT, LOCAL_API_ENDPOINT } from "./constants";
 
+type Context = GetServerSidePropsContext;
+
 const { fetch } = fetchPonyfill();
 const ENDPOINT = typeof window === "undefined" ? (LOCAL_API_ENDPOINT as string) : API_ENDPOINT;
 
@@ -22,9 +24,9 @@ let accessToken: Maybe<AccessToken>;
  *
  * If in SSR, the "Set-Cookie" header will be passed from the server to the client.
  */
-export const fetchAccessToken = async (ctx?: GetServerSidePropsContext): Promise<Maybe<AccessToken>> => {
-  const isSSR = typeof window === "undefined" && ctx?.req !== undefined;
-  const cookies = cookie.parse(isSSR ? ctx.req.headers?.cookie ?? "" : document.cookie);
+export const fetchAccessToken = async (ctx?: Context): Promise<Maybe<AccessToken>> => {
+  const isSSR = isContext(ctx);
+  const cookies = cookie.parse(isSSR ? (ctx as Context).req.headers?.cookie ?? "" : document.cookie);
   const refreshToken: Maybe<string> = cookies.refreshToken;
   const refreshTokenExpires: Maybe<string> = cookies.refreshTokenExpires;
 
@@ -44,8 +46,8 @@ export const fetchAccessToken = async (ctx?: GetServerSidePropsContext): Promise
       "Cache-Control": "no-cache",
     };
 
-    if (isSSR && isString(ctx.req.headers.cookie)) {
-      headers.Cookie = ctx.req.headers.cookie;
+    if (isSSR && isString((ctx as Context).req.headers.cookie)) {
+      headers.Cookie = (ctx as Context).req.headers.cookie as string;
     }
 
     try {
@@ -61,7 +63,7 @@ export const fetchAccessToken = async (ctx?: GetServerSidePropsContext): Promise
 
         // Forward the Set-Cookie header if in SSR
         if (isSSR && isString(response.headers.get("Set-Cookie"))) {
-          ctx.res.setHeader("Set-Cookie", response.headers.get("Set-Cookie") as string);
+          (ctx as Context).res.setHeader("Set-Cookie", response.headers.get("Set-Cookie") as string);
         }
 
         _accessToken = { token, tokenExpires: new Date(tokenExpires) };
@@ -72,8 +74,8 @@ export const fetchAccessToken = async (ctx?: GetServerSidePropsContext): Promise
       if (isSSR) {
         // I don't think this is the correct response with how I am using this.
         // I should handle how to response to a failed refresh higher up in the app.
-        ctx.res.writeHead(302, { Location: "/login" });
-        ctx.res.end();
+        (ctx as Context).res.writeHead(302, { Location: "/login" });
+        (ctx as Context).res.end();
       }
       return null;
       // Router.push("/login");
@@ -84,3 +86,7 @@ export const fetchAccessToken = async (ctx?: GetServerSidePropsContext): Promise
 
   return _accessToken;
 };
+
+function isContext(ctx: unknown): ctx is Context {
+  return typeof window === "undefined" && !!ctx && (ctx as Context)?.req !== undefined;
+}
