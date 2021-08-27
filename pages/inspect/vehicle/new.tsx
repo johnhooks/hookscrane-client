@@ -24,7 +24,7 @@ const NewInspect: NextPage = () => {
 
   const router = useRouter();
   const [create, { data, loading, error }] = useCreateDailyVehicleInspectMutation();
-  const [miles, setMiles] = useState(0);
+  const [miles, setMiles] = useState("");
   const [items, setItems] = useState(checkboxesMemo);
 
   if (loading) return <p>Submitting...</p>;
@@ -38,19 +38,24 @@ const NewInspect: NextPage = () => {
   ];
 
   const handleMilesChange: (e: ChangeEvent<HTMLInputElement>) => void = e => {
+    if (e.target.value === "") setMiles("");
     const value = parseInt(e.target.value);
-    if (!isNaN(value)) setMiles(value);
+    console.log(value);
+    if (isNaN(value)) throw new Error("Invalid miles value");
+    setMiles(e.target.value);
   };
 
   function handleSubmit({ datetime }: { datetime: Date }) {
     try {
       const deficiencies = items.filter(item => !item.checked).map(item => item.name);
       const meta = deficiencies.length > 0 ? { deficiencies } : {};
+      const milesParsed = parseInt(miles);
+      if (isNaN(milesParsed)) throw new Error("Invalid miles value");
       create({
         variables: {
           data: {
             datetime,
-            miles,
+            miles: milesParsed,
             meta,
           },
         },

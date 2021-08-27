@@ -25,7 +25,7 @@ const NewInspect: NextPage = () => {
 
   const router = useRouter();
   const [create, { data, loading, error }] = useCreateFrequentInspectMutation();
-  const [hours, setHours] = useState(0);
+  const [hours, setHours] = useState("");
   const [items, setItems] = useState(checkboxesMemo);
 
   if (loading) return <p>Submitting...</p>;
@@ -39,19 +39,23 @@ const NewInspect: NextPage = () => {
   ];
 
   const handleHoursChange: (e: ChangeEvent<HTMLInputElement>) => void = e => {
+    if (e.target.value === "") setHours("");
     const value = parseInt(e.target.value);
-    if (!isNaN(value)) setHours(value);
+    if (isNaN(value)) throw new Error("Invalid hours value");
+    setHours(e.target.value);
   };
 
   function handleSubmit({ datetime }: { datetime: Date }) {
     try {
       const deficiencies = items.filter(item => !item.checked).map(item => item.name);
       const meta = deficiencies.length > 0 ? { deficiencies } : {};
+      const hoursParsed = parseInt(hours);
+      if (isNaN(hoursParsed)) throw new Error("Invalid hours value");
       create({
         variables: {
           data: {
             datetime,
-            hours,
+            hours: hoursParsed,
             meta,
           },
         },
