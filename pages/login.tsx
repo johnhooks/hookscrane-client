@@ -128,10 +128,12 @@ const LoginPage: NextPage = () => {
 export const getServerSideProps: GetServerSideProps = async ctx => {
   const accessToken = await fetchAccessToken(ctx);
 
-  if (accessToken) {
-    // Already logged in, need to figure out how flash messages
-    return serverSideRedirect(ctx, "/me");
-  }
+  // NOTE: This was causing a redirect back and forth between /me and /login.
+  // TODO: Figure out how to acknowledge that a user is logged in on the login screen.
+  // if (accessToken) {
+  //   // Already logged in, need to figure out how flash messages
+  //   return serverSideRedirect(ctx, "/me");
+  // }
 
   return { props: {} };
 };

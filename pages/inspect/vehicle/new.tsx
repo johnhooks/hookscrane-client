@@ -1,17 +1,19 @@
 import type { NextPage } from "next";
-import { useMemo } from "react";
+import type { ChangeEvent } from "react";
+
+import { useMemo, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import type { CheckboxProps } from "components/inspect-item-checkbox";
-import { useCreateDailyInspectMutation, InspectType } from "generated/types";
-import { DailyInspect, InspectItem } from "components/daily-inspect";
+import { useCreateDailyVehicleInspectMutation } from "generated/types";
+import { DailyInspectForm, InspectItem } from "components/daily-inspect/form";
+import { TextInput } from "components/text-input";
 
 import craneData from "data/crane-data.json";
 import vehicleInspectItemData from "data/daily-vehicle-inspect.json";
 
 const NewInspect: NextPage = () => {
-  const checkboxesMemo: Omit<CheckboxProps, "onChange">[] = useMemo(() => {
+  const checkboxesMemo: InspectItem[] = useMemo(() => {
     return vehicleInspectItemData.map(({ name, label }) => ({
       id: `${name}-input`,
       name,
@@ -21,13 +23,11 @@ const NewInspect: NextPage = () => {
   }, []);
 
   const router = useRouter();
-  const [createDailyInspect, { data, loading, error }] = useCreateDailyInspectMutation();
+  const [create, { data, loading, error }] = useCreateDailyVehicleInspectMutation();
+  const [miles, setMiles] = useState(0);
+  const [items, setItems] = useState(checkboxesMemo);
 
-  if (loading) {
-    console.log("HERE");
-    return <p>Submitting...</p>;
-  }
-
+  if (loading) return <p>Submitting...</p>;
   if (error) return <p>Submission error! {error.message}</p>;
 
   const details = [
@@ -37,31 +37,27 @@ const NewInspect: NextPage = () => {
     { name: "owner-id", label: "Owner ID Number", value: craneData.id },
   ];
 
-  function handleSubmit<Item extends InspectItem>({
-    datetime,
-    hours,
-    items,
-  }: {
-    datetime: Date;
-    hours: number;
-    items: Item[];
-  }) {
+  const handleMilesChange: (e: ChangeEvent<HTMLInputElement>) => void = e => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value)) setMiles(value);
+  };
+
+  function handleSubmit({ datetime }: { datetime: Date }) {
     try {
       const deficiencies = items.filter(item => !item.checked).map(item => item.name);
       const meta = deficiencies.length > 0 ? { deficiencies } : {};
-      createDailyInspect({
+      create({
         variables: {
           data: {
-            type: InspectType.Vehicle,
             datetime,
-            hours,
+            miles,
             meta,
           },
         },
       }).then(result => {
-        const inspectId = result.data?.createDailyInspect?.id;
+        const inspectId = result.data?.createDailyVehicleInspect?.id;
         if (inspectId) {
-          router.push(`/inspect/${inspectId}`);
+          router.push(`/inspect/vehicle/${inspectId}`);
           return;
         }
         throw new Error("Received unexpected input during daily inspection form submission");
@@ -77,14 +73,29 @@ const NewInspect: NextPage = () => {
         <title>New Daily Vehicle Inspection - Hooks Crane</title>
         <meta name="description" content="New vehicle inspection form" />
       </Head>
-      <div className="py-16 px-4 overflow-hidden sm:px-6 lg:px-8 lg:py-24">
+      <header className="bg-white sm:shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900">Daily Vehicle Inspection</h1>
+        </div>
+      </header>
+      <div className="mt-4 sm:mt-6 overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <div className="text-center mb-4">
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-              Daily Vehicle Inspection
-            </h2>
-          </div>
-          <DailyInspect details={details} inspectItems={checkboxesMemo} handleSubmit={handleSubmit} />
+          <DailyInspectForm
+            details={details}
+            inspectItems={items}
+            setInspectItems={setItems}
+            handleSubmit={handleSubmit}
+          >
+            <div className="sm:col-span-2">
+              <TextInput
+                value={miles.toString()}
+                id="miles-input"
+                name="miles"
+                label="Miles"
+                onChange={handleMilesChange}
+              />
+            </div>
+          </DailyInspectForm>
         </div>
       </div>
     </>

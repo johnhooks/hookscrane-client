@@ -1,8 +1,8 @@
-import type { FormEventHandler, PropsWithChildren, ChangeEvent } from "react";
+import type { ChangeEvent, FormEventHandler, PropsWithChildren, SetStateAction } from "react";
 import { useState } from "react";
 import { format as formatDate } from "date-fns";
 
-import type { CheckboxProps } from "./inspect-item-checkbox";
+import type { CheckboxProps } from "../inspect-item-checkbox";
 import { TextInput, Props as TextInputProps } from "components/text-input";
 import { InspectChecklist } from "components/inspect-checklist";
 import { DetailList, DetailItemProps } from "components/detail-list";
@@ -15,19 +15,20 @@ export type InspectItem = Omit<CheckboxProps, "onChange">;
 interface Props<Item extends InspectItem, Detail extends DetailItemProps> {
   details: Detail[];
   inspectItems: Item[];
-  handleSubmit: (data: { datetime: Date; hours: number; items: Item[] }) => void;
+  setInspectItems: (value: SetStateAction<Item[]>) => void;
+  handleSubmit: (data: { datetime: Date }) => void;
 }
 
-export function DailyInspect<Item extends InspectItem, Detail extends DetailItemProps>({
+export function DailyInspectForm<Item extends InspectItem, Detail extends DetailItemProps>({
   details,
   inspectItems,
+  setInspectItems,
   handleSubmit,
+  children,
 }: PropsWithChildren<Props<Item, Detail>>) {
   const datetime = new Date();
-  const [items, setItems] = useState(inspectItems);
   const [date, setDate] = useState(formatDate(datetime, "yyyy-MM-dd"));
   const [time, setTime] = useState(formatDate(datetime, "HH:mm"));
-  const [hours, setHours] = useState(0);
 
   const handleDateChange: OnChangeHandler = e => {
     setDate(e.target.value);
@@ -37,15 +38,10 @@ export function DailyInspect<Item extends InspectItem, Detail extends DetailItem
     setTime(e.target.value);
   };
 
-  const handleHoursChange: OnChangeHandler = e => {
-    const value = parseInt(e.target.value);
-    if (!isNaN(value)) setHours(value);
-  };
-
   const handleCheckboxToggle = function (name: string) {
     return function (e: ChangeEvent<HTMLInputElement>) {
       e.preventDefault();
-      setItems(prevState => {
+      setInspectItems(prevState => {
         const item = prevState.find(item => item.name === name);
         if (item) {
           const updatedItem = { ...item, checked: !item.checked };
@@ -61,7 +57,7 @@ export function DailyInspect<Item extends InspectItem, Detail extends DetailItem
     e.preventDefault();
     try {
       const datetime = mapToDate({ date, time });
-      handleSubmit({ datetime, hours, items });
+      handleSubmit({ datetime });
     } catch (error) {
       // TODO Display an error about an invalid date.
       console.log(error);
@@ -83,20 +79,18 @@ export function DailyInspect<Item extends InspectItem, Detail extends DetailItem
         <div>
           <TextInput type="time" value={time} id="time-input" name="time" label="Time" onChange={handleTimeChange} />
         </div>
-        <div className="sm:col-span-2">
-          <TextInput
-            type="number"
-            value={hours.toString()}
-            id="hours-input"
-            name="hours"
-            label="Hours"
-            onChange={handleHoursChange}
-          />
-        </div>
+        {/*
+          KLUDGE: This seems like a hack, but its working.
+          The daily vehicle and frequent crane inspections share the same database table,
+          but they have different requirements for criteria and details. The children prop
+          is to allow the forms to add their own form fields. Right now its for hours or miles
+          depending on what the form needs.
+         */}
+        {children}
         <div className="sm:col-span-2">
           <InspectChecklist
             name="Inspection criteria"
-            items={items.map(item => ({
+            items={inspectItems.map(item => ({
               ...item,
               onChange: handleCheckboxToggle(item.name),
             }))}
