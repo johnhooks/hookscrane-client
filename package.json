@@ -2,8 +2,11 @@
   "name": "@johnhooks/hookscrane-client",
   "version": "0.1.0",
   "private": true,
+  "author": "John Hooks <bitmachina@outlook.com>",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev",
+    "dev:debug": "NODE_OPTIONS='--inspect' next dev",
     "build": "npm run generate && npm run build:next",
     "build:next": "next build",
     "start": "next start",
