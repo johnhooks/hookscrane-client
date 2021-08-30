@@ -4,7 +4,13 @@ import { ClipboardCheckIcon } from "@heroicons/react/outline";
 import { NavigationBar, Navigation } from "components/navigation/bar";
 
 const navigation: Record<string, Navigation[]> = {
-  main: [{ name: "Inspections", href: "/inspect", icon: props => <ClipboardCheckIcon {...props} /> }],
+  main: [
+    {
+      name: "Inspections",
+      href: "/inspect",
+      // icon: props => <ClipboardCheckIcon {...props} /> // Error: Component definition is missing display name  react/display-name
+    },
+  ],
 };
 
 const Layout: FunctionComponent = function Layout({ children }) {
