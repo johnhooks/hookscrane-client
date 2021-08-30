@@ -13,12 +13,12 @@ import {
 import { Page } from "components/page";
 import { ListDocuments } from "components/document/list";
 
-const title = "Recent Daily Vehicle Inspections";
-const actions = [{ href: "/inspect/vehicle/new", label: "Inspect Vehicle", primary: true }];
-const variables = { types: [DocType.InspectVehicleDaily] };
-const description = "List of recent daily vehicle inspections";
+const title = "Recent Frequent Crane Inspections";
+const actions = [{ href: "/inspect/crane/new", label: "Inspect Crane", primary: true }];
+const variables = { types: [DocType.InspectCraneFrequent] };
+const description = "List of recent frequent crane inspections";
 
-const DailyVehicleInspectsPage: NextPage = () => {
+const FrequentInspectsPage: NextPage = () => {
   const { data, loading, error } = useRecentDocumentsListQuery({
     variables,
   });
@@ -42,7 +42,7 @@ const DailyVehicleInspectsPage: NextPage = () => {
   );
 };
 
-export default DailyVehicleInspectsPage;
+export default FrequentInspectsPage;
 
 export const getServerSideProps: GetServerSideProps = async ctx => {
   const apolloClient = initializeApollo(null);

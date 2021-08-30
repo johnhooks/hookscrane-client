@@ -5,6 +5,7 @@ export default gql`
     id
     datetime
     miles
+    pass
     meta
   }
 `;

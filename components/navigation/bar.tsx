@@ -1,4 +1,4 @@
-import type { FunctionComponent } from "react";
+import type { FunctionComponent, ReactElement, PropsWithChildren } from "react";
 import { Fragment } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -7,6 +7,16 @@ import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
 
 import { useAuth } from "contexts/auth-context";
+
+export interface Navigation {
+  name: string;
+  href: string;
+  icon?: (props: React.ComponentProps<"svg">) => JSX.Element;
+}
+
+interface Props {
+  navigation: Navigation[];
+}
 
 const userNavigation = [
   { name: "Your Profile", href: "/me" },
@@ -18,42 +28,42 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export const NavigationBar: FunctionComponent = function NavigationBar() {
+export const NavigationBar: FunctionComponent<Props> = function NavigationBar(props) {
   const { pathname } = useRouter();
   const { user } = useAuth();
 
-  const navigation = [
-    { name: "Inspect", href: "/inspect" },
-    { name: "Log", href: "/log", current: false },
-  ].map(item => {
-    if (new RegExp(`^${item.href}$`).test(pathname)) {
-      return { ...item, current: true };
-    } else {
-      return { ...item, current: false };
-    }
+  const navigation = props.navigation.map(item => {
+    return { ...item, current: new RegExp(`^${item.href}$`).test(pathname) };
   });
 
   return (
-    <div>
+    <div className="print:hidden">
       <Disclosure as="nav" className="bg-gray-800">
         {({ open }) => (
           <>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-16">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 text-gray-300">HCS</div>
+                  <div className="flex-shrink-0">
+                    {/^\/$/.test(pathname) ? (
+                      <span className="text-sm font-medium text-white">Hooks Crane</span>
+                    ) : (
+                      <Link href="/" passHref>
+                        <a className="text-sm font-medium text-gray-300 hover:text-white">Hooks Crane</a>
+                      </Link>
+                    )}
+                  </div>
                   <div className="hidden md:block">
                     <div className="ml-10 flex items-baseline space-x-4">
                       {navigation.map(item => (
                         <Link href={item.href} passHref key={item.name}>
                           <a
-                            href={item.href}
-                            className={classNames(
-                              item.current
+                            className={
+                              (item.current
                                 ? "bg-gray-900 text-white"
-                                : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                              "px-3 py-2 rounded-md text-sm font-medium"
-                            )}
+                                : "text-gray-300 hover:bg-gray-700 hover:text-white") +
+                              " px-3 py-2 rounded-md text-sm font-medium"
+                            }
                             aria-current={item.current ? "page" : undefined}
                           >
                             {item.name}

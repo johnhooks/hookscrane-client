@@ -6,7 +6,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import { useCreateFrequentInspectMutation, InspectType } from "generated/types";
-import { DailyInspectForm, InspectItem } from "components/daily-inspect/form";
+import { DailyInspectForm, InspectItem } from "components/inspect/form";
 import { TextInput } from "components/text-input";
 
 import craneData from "data/crane-data.json";
@@ -39,10 +39,22 @@ const NewInspect: NextPage = () => {
   ];
 
   const handleHoursChange: (e: ChangeEvent<HTMLInputElement>) => void = e => {
-    if (e.target.value === "") setHours("");
-    const value = parseInt(e.target.value);
-    if (isNaN(value)) throw new Error("Invalid hours value");
-    setHours(e.target.value);
+    const value = e.target.value;
+
+    // Allow the value to be blank
+    if (value === "") {
+      setHours("");
+      return;
+    }
+
+    // Only change the value if it looks like an integer
+    if (/^\d+$/.test(value)) {
+      const int = parseInt(e.target.value);
+      if (!isNaN(int)) {
+        setHours(e.target.value);
+        return;
+      }
+    }
   };
 
   function handleSubmit({ datetime }: { datetime: Date }) {
@@ -79,7 +91,7 @@ const NewInspect: NextPage = () => {
         <meta name="description" content="New crane inspection form" />
       </Head>
       <header className="bg-white sm:shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-gray-900">Daily Crane Inspection</h1>
         </div>
       </header>

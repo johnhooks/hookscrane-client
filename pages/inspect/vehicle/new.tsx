@@ -6,7 +6,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import { useCreateDailyVehicleInspectMutation } from "generated/types";
-import { DailyInspectForm, InspectItem } from "components/daily-inspect/form";
+import { DailyInspectForm, InspectItem } from "components/inspect/form";
 import { TextInput } from "components/text-input";
 
 import craneData from "data/crane-data.json";
@@ -38,11 +38,22 @@ const NewInspect: NextPage = () => {
   ];
 
   const handleMilesChange: (e: ChangeEvent<HTMLInputElement>) => void = e => {
-    if (e.target.value === "") setMiles("");
-    const value = parseInt(e.target.value);
-    console.log(value);
-    if (isNaN(value)) throw new Error("Invalid miles value");
-    setMiles(e.target.value);
+    const value = e.target.value;
+
+    // Allow the value to be blank
+    if (value === "") {
+      setMiles("");
+      return;
+    }
+
+    // Only change the value if it looks like an integer
+    if (/^\d+$/.test(value)) {
+      const int = parseInt(e.target.value);
+      if (!isNaN(int)) {
+        setMiles(e.target.value);
+        return;
+      }
+    }
   };
 
   function handleSubmit({ datetime }: { datetime: Date }) {
@@ -79,7 +90,7 @@ const NewInspect: NextPage = () => {
         <meta name="description" content="New vehicle inspection form" />
       </Head>
       <header className="bg-white sm:shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-gray-900">Daily Vehicle Inspection</h1>
         </div>
       </header>

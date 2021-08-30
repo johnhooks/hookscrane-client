@@ -1,7 +1,11 @@
 import type { FunctionComponent } from "react";
 import Head from "next/head";
+import { ClipboardCheckIcon } from "@heroicons/react/outline";
+import { NavigationBar, Navigation } from "components/navigation/bar";
 
-import { NavigationBar } from "components/navigation/bar";
+const navigation: Record<string, Navigation[]> = {
+  main: [{ name: "Inspections", href: "/inspect", icon: props => <ClipboardCheckIcon {...props} /> }],
+};
 
 const Layout: FunctionComponent = function Layout({ children }) {
   return (
@@ -11,23 +15,32 @@ const Layout: FunctionComponent = function Layout({ children }) {
         <meta name="description" content="The website of Hooks Crane Service Tri-Cities, WA" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <NavigationBar />
+      <NavigationBar navigation={navigation.main} />
       <main>{children}</main>
-
-      {/* <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+      <footer>
+        <div className="max-w-7xl mx-auto py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
+          <nav className="-mx-5 -my-2 flex flex-wrap justify-center print:hidden" aria-label="Footer">
+            {navigation.main.map(item => (
+              <div key={item.name} className="px-5 py-2">
+                <a href={item.href} className="text-base text-gray-500 hover:text-gray-900">
+                  {item.name}
+                </a>
+              </div>
+            ))}
+          </nav>
+          {/* <div className="mt-8 flex justify-center space-x-6">
+            {navigation.social.map(item => (
+              <a key={item.name} href={item.href} className="text-gray-400 hover:text-gray-500">
+                <span className="sr-only">{item.name}</span>
+                <item.icon className="h-6 w-6" aria-hidden="true" />
+              </a>
+            ))}
+          </div> */}
+          <p className="mt-8 text-center text-base text-gray-400">
+            &copy; 2021 Hooks Crane Service, Inc. All rights reserved.
+          </p>
         </div>
-      </header>
-      <main>
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-
-          <div className="px-4 py-6 sm:px-0">
-            <div className="border-4 border-dashed border-gray-200 rounded-lg h-96" />
-          </div>
-
-        </div>
-      </main> */}
+      </footer>
     </>
   );
 };

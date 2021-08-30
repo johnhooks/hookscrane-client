@@ -20,3 +20,4 @@
 ## VSCode
 
 - [How to Format Code on Save in VS Code with ESlint](https://www.aleksandrhovhannisyan.com/blog/format-code-on-save-vs-code-eslint/)
+- [How to debug Node.js apps in Visual Studio Code](https://blog.logrocket.com/how-to-debug-node-js-apps-in-visual-studio-code/) - Review again later
