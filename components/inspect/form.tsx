@@ -19,7 +19,7 @@ interface Props<Item extends InspectItem, Detail extends DetailItemProps> {
   handleSubmit: (data: { datetime: Date }) => void;
 }
 
-export function DailyInspectForm<Item extends InspectItem, Detail extends DetailItemProps>({
+export function InspectForm<Item extends InspectItem, Detail extends DetailItemProps>({
   details,
   inspectItems,
   setInspectItems,

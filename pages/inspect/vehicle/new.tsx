@@ -6,7 +6,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import { useCreateDailyVehicleInspectMutation } from "generated/types";
-import { DailyInspectForm, InspectItem } from "components/inspect/form";
+import { InspectForm, InspectItem } from "components/inspect/form";
 import { TextInput } from "components/text-input";
 
 import craneData from "data/crane-data.json";
@@ -73,7 +73,7 @@ const NewInspect: NextPage = () => {
       }).then(result => {
         const inspectId = result.data?.createDailyVehicleInspect?.id;
         if (inspectId) {
-          router.push(`/inspect/vehicle/${inspectId}`);
+          router.push(`/inspect/${inspectId}`);
           return;
         }
         throw new Error("Received unexpected input during daily inspection form submission");
@@ -96,12 +96,7 @@ const NewInspect: NextPage = () => {
       </header>
       <div className="mt-4 sm:mt-6 overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <DailyInspectForm
-            details={details}
-            inspectItems={items}
-            setInspectItems={setItems}
-            handleSubmit={handleSubmit}
-          >
+          <InspectForm details={details} inspectItems={items} setInspectItems={setItems} handleSubmit={handleSubmit}>
             <div className="sm:col-span-2">
               <TextInput
                 value={miles.toString()}
@@ -111,7 +106,7 @@ const NewInspect: NextPage = () => {
                 onChange={handleMilesChange}
               />
             </div>
-          </DailyInspectForm>
+          </InspectForm>
         </div>
       </div>
     </>

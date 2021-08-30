@@ -6,7 +6,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import { useCreateFrequentInspectMutation, InspectType } from "generated/types";
-import { DailyInspectForm, InspectItem } from "components/inspect/form";
+import { InspectForm, InspectItem } from "components/inspect/form";
 import { TextInput } from "components/text-input";
 
 import craneData from "data/crane-data.json";
@@ -74,7 +74,7 @@ const NewInspect: NextPage = () => {
       }).then(result => {
         const inspectId = result.data?.createFrequentInspect?.id;
         if (inspectId) {
-          router.push(`/inspect/crane/${inspectId}`);
+          router.push(`/inspect/${inspectId}`);
           return;
         }
         throw new Error("Received unexpected input during daily inspection form submission");
@@ -97,7 +97,7 @@ const NewInspect: NextPage = () => {
       </header>
       <div className="mt-4 sm:mt-6overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <DailyInspectForm
+          <InspectForm
             details={details}
             inspectItems={checkboxesMemo}
             setInspectItems={setItems}
@@ -112,7 +112,7 @@ const NewInspect: NextPage = () => {
                 onChange={handleHoursChange}
               />
             </div>
-          </DailyInspectForm>
+          </InspectForm>
         </div>
       </div>
     </>
