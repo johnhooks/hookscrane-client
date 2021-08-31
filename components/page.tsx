@@ -9,12 +9,12 @@ interface Action {
 }
 
 interface Props {
-  actions?: Action[];
+  actions?: Action[] | null;
   date?: Date;
   title: string;
 }
 
-export function Page({ title, actions = [], date, children }: PropsWithChildren<Props>) {
+export function Page({ title, actions, date, children }: PropsWithChildren<Props>) {
   return (
     <>
       <header className="bg-white sm:shadow">
@@ -31,22 +31,23 @@ export function Page({ title, actions = [], date, children }: PropsWithChildren<
               )}
             </div>
             <div className="mt-4 flex md:mt-0 md:ml-4">
-              {actions.map(({ href, label, primary }, index) => (
-                <Link key={href} href={href} passHref>
-                  <a
-                    role="button"
-                    className={
-                      (primary
-                        ? "border-transparent text-white bg-indigo-600 hover:bg-indigo-700 "
-                        : "border-gray-300 text-gray-700 bg-white hover:bg-gray-50 ") +
-                      (index !== 0 ? "ml-3 " : "") +
-                      "inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    }
-                  >
-                    {label}
-                  </a>
-                </Link>
-              ))}
+              {actions &&
+                actions.map(({ href, label, primary }, index) => (
+                  <Link key={href} href={href} passHref>
+                    <a
+                      role="button"
+                      className={
+                        (primary
+                          ? "border-transparent text-white bg-indigo-600 hover:bg-indigo-700 "
+                          : "border-gray-300 text-gray-700 bg-white hover:bg-gray-50 ") +
+                        (index !== 0 ? "ml-3 " : "") +
+                        "inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      }
+                    >
+                      {label}
+                    </a>
+                  </Link>
+                ))}
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { sortBy, reverse } from "lodash-es";
 
 import { initializeApollo, addApolloState } from "lib/apollo-client";
 import { fetchAccessToken } from "lib/fetch-access-token";
+import { useAuth } from "contexts/auth-context";
 import {
   DocType,
   RecentDocumentsListDocument,
@@ -21,6 +22,7 @@ const variables = { types: [DocType.InspectVehicleDaily] };
 const description = "List of recent daily vehicle inspections";
 
 const DailyVehicleInspectsPage: NextPage = () => {
+  const { user } = useAuth();
   const { data, loading, error } = useRecentDocumentsListQuery({
     variables,
   });
@@ -40,7 +42,7 @@ const DailyVehicleInspectsPage: NextPage = () => {
         <title>{title} - Hooks Crane</title>
         <meta name="description" content={description} />
       </Head>
-      <Page title={title} actions={actions}>
+      <Page title={title} actions={user ? actions : null}>
         <div className="max-w-2xl mx-auto mt-4 sm:mt-6 px-4 sm:px-6 lg:px-8">
           {loading && <p>Loading...</p>}
           {error && <p>Error: {error.message}</p>}
