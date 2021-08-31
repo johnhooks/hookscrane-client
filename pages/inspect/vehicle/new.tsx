@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 
 import { useCreateDailyVehicleInspectMutation } from "generated/types";
 import { InspectForm, InspectItem } from "components/inspect/form";
-import { TextInput } from "components/text-input";
+import { TextInput } from "components/form/text-input";
 
 import craneData from "data/crane-data.json";
 import vehicleInspectItemData from "data/daily-vehicle-inspect.json";

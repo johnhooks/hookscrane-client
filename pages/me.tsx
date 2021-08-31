@@ -11,6 +11,7 @@ import { initializeApollo, addApolloState } from "lib/apollo-client";
 import { serverSideRedirect } from "lib/server-side-redirect";
 import { MeQuery, MeDocument } from "generated/types";
 import { useAuth } from "contexts/auth-context";
+import { Page } from "components/page";
 
 const MePage: NextPage = () => {
   const router = useRouter();
@@ -36,10 +37,11 @@ const MePage: NextPage = () => {
 
   return (
     <>
-      <div>
-        <Link href="/">Home</Link>
-      </div>
-      {user && <div>Hello, you are logged in as {data.me.email}</div>}
+      <Page title="Profile">
+        <div className="max-w-2xl mx-auto mt-4 sm:mt-6 px-4 sm:px-6 lg:px-8 text-center">
+          {user && <div>Hello, you are logged in as {data.me.email}</div>}
+        </div>
+      </Page>
     </>
   );
 };

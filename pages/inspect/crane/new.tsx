@@ -5,9 +5,9 @@ import { useMemo, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import { useCreateFrequentInspectMutation, InspectType } from "generated/types";
+import { useCreateFrequentInspectMutation } from "generated/types";
 import { InspectForm, InspectItem } from "components/inspect/form";
-import { TextInput } from "components/text-input";
+import { TextInput } from "components/form/text-input";
 
 import craneData from "data/crane-data.json";
 import craneInspectItemData from "data/daily-crane-inspection.json";
@@ -87,7 +87,7 @@ const NewInspect: NextPage = () => {
   return (
     <>
       <Head>
-        <title>New Daily Crane Inspection - Hooks Crane</title>
+        <title>New Frequent Crane Inspection - Hooks Crane</title>
         <meta name="description" content="New crane inspection form" />
       </Head>
       <header className="bg-white sm:shadow">
@@ -97,12 +97,7 @@ const NewInspect: NextPage = () => {
       </header>
       <div className="mt-4 sm:mt-6overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <InspectForm
-            details={details}
-            inspectItems={checkboxesMemo}
-            setInspectItems={setItems}
-            handleSubmit={handleSubmit}
-          >
+          <InspectForm details={details} inspectItems={items} setInspectItems={setItems} handleSubmit={handleSubmit}>
             <div className="sm:col-span-2">
               <TextInput
                 value={hours.toString()}

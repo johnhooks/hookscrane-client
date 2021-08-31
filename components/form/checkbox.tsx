@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 
-export interface CheckboxProps {
+export interface Props {
   id: string;
   name: string;
   label: string;
@@ -10,14 +10,7 @@ export interface CheckboxProps {
   note?: string;
 }
 
-export function InspectItemCheckbox<Checkbox extends CheckboxProps>({
-  id,
-  name,
-  label,
-  checked,
-  onChange,
-  description,
-}: PropsWithChildren<Checkbox>) {
+export function Checkbox({ id, name, label, checked, onChange, description }: PropsWithChildren<Props>) {
   return (
     <div className="relative flex items-start">
       <div className="flex items-center h-5">
@@ -44,5 +37,3 @@ export function InspectItemCheckbox<Checkbox extends CheckboxProps>({
     </div>
   );
 }
-
-export default InspectItemCheckbox;

@@ -1,8 +1,8 @@
 import type { PropsWithChildren } from "react";
 
-import type { CheckboxProps } from "components/inspect-item-checkbox";
+import type { Props as CheckboxProps } from "components/form/checkbox";
 
-import { InspectList } from "components/inspect-list";
+import { Checklist } from "components/checklist";
 import { DetailList, DetailItemProps } from "components/detail-list";
 
 export type InspectItem = Omit<CheckboxProps, "onChange">;
@@ -28,7 +28,7 @@ export function InspectShow<Item extends InspectItem, Detail extends DetailItemP
         <header className="text-center">
           <h3 className="text-1xl font-bold tracking-tight text-gray-900 sm:text-2xl">Criteria</h3>
         </header>
-        <InspectList items={items} />
+        <Checklist items={items} />
       </section>
     </article>
   );

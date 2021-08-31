@@ -2,9 +2,9 @@ import type { ChangeEvent, FormEventHandler, PropsWithChildren, SetStateAction }
 import { useState } from "react";
 import { format as formatDate } from "date-fns";
 
-import type { CheckboxProps } from "../inspect-item-checkbox";
-import { TextInput, Props as TextInputProps } from "components/text-input";
-import { InspectChecklist } from "components/inspect-checklist";
+import type { Props as CheckboxProps } from "components/form/checkbox";
+import { TextInput, Props as TextInputProps } from "components/form/text-input";
+import { Checklist } from "components/form/checklist";
 import { DetailList, DetailItemProps } from "components/detail-list";
 import { mapToDate } from "lib/date";
 
@@ -88,7 +88,7 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
          */}
         {children}
         <div className="sm:col-span-2">
-          <InspectChecklist
+          <Checklist
             name="Inspection criteria"
             items={inspectItems.map(item => ({
               ...item,

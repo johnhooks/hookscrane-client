@@ -2,10 +2,10 @@ import type { NextPage } from "next";
 import type { GetServerSideProps } from "next";
 
 import Head from "next/head";
-import Link from "next/link";
+import { sortBy, reverse } from "lodash-es";
 
 import { initializeApollo, addApolloState } from "lib/apollo-client";
-
+import { fetchAccessToken } from "lib/fetch-access-token";
 import {
   DocType,
   RecentDocumentsListDocument,
@@ -28,7 +28,14 @@ const ListInspectsPage: NextPage = () => {
     variables,
   });
 
-  const documents = data?.recentDocuments.map(doc => ({ ...doc, datetime: new Date(doc.datetime) }));
+  const documents =
+    data &&
+    reverse(
+      sortBy(
+        data.recentDocuments.map(doc => ({ ...doc, datetime: new Date(doc.datetime) })),
+        ({ datetime }) => datetime
+      )
+    );
 
   return (
     <>
@@ -50,7 +57,8 @@ const ListInspectsPage: NextPage = () => {
 export default ListInspectsPage;
 
 export const getServerSideProps: GetServerSideProps = async ctx => {
-  const apolloClient = initializeApollo(null);
+  const accessToken = await fetchAccessToken(ctx);
+  const apolloClient = initializeApollo(null, accessToken);
 
   await apolloClient.query<RecentDocumentsListQuery>({
     query: RecentDocumentsListDocument,

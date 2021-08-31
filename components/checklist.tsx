@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 
-export interface ItemDetail {
+export interface CheckboxDetail {
   name: string;
   label: string;
   checked: boolean;
@@ -9,11 +9,11 @@ export interface ItemDetail {
   note?: string;
 }
 
-export interface Props<Detail extends ItemDetail> {
-  items: Detail[];
+export interface Props {
+  items: CheckboxDetail[];
 }
 
-export function InspectList<Detail extends ItemDetail>({ items }: PropsWithChildren<Props<Detail>>) {
+export function Checklist({ items }: PropsWithChildren<Props>) {
   return (
     <ul role="list" className="divide-y divide-gray-200">
       {items.map(({ name, label, checked }) => (
