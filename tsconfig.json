@@ -1,20 +1,16 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve"
+    "rootDir": ".",
+    "outDir": "build"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "references": [
+    { "path": "components" },
+    { "path": "contexts" },
+    { "path": "graphql" },
+    { "path": "hooks" },
+    { "path": "lib" }
+  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.json"],
   "exclude": ["node_modules"]
 }
