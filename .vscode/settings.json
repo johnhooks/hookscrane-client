@@ -45,6 +45,7 @@
     "webp"
   ],
   "cSpell.ignorePaths": [
+    "**/package.json",
     "**/package-lock.json",
     "**/node_modules/**",
     "**/vscode-extension/**",
