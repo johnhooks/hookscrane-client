@@ -16,8 +16,9 @@ let inMemoryAccessToken: Maybe<AccessToken>;
 
 function createIsomorphLink() {
   if (typeof window === "undefined") {
+    // Could possibly use a schema link, if I can combine api and client code...
     return new HttpLink({
-      uri: `${LOCAL_API_ENDPOINT}/graphql`, // Will use a different uri in production on server
+      uri: `${LOCAL_API_ENDPOINT}/graphql`,
       credentials: "include",
     });
   } else {
@@ -59,13 +60,16 @@ function createApolloClient() {
   });
 }
 
-// From https://github.com/vercel/next.js/blob/canary/examples/with-apollo/lib/apolloClient.js
-export function initializeApollo(initialState: any = null, accessToken?: Maybe<AccessToken>) {
-  inMemoryAccessToken = accessToken ?? null;
+// Inspired by https://github.com/vercel/next.js/blob/canary/examples/with-apollo/lib/apolloClient.js
+export function initializeApollo(initialState: any = null, accessToken: Maybe<AccessToken> = null) {
+  // Always update the in memory access token to its current value
+  inMemoryAccessToken = accessToken;
+
+  // Use the existing client or create a new one
   const _apolloClient = apolloClient ?? createApolloClient();
 
   // If your page has Next.js data fetching methods that use Apollo Client, the initial state
-  // get hydrated here
+  // gets hydrated here
   if (initialState) {
     // Get existing cache, loaded during client side data fetching
     const existingCache = _apolloClient.extract();
