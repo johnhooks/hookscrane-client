@@ -21,7 +21,7 @@ interface Props {
 const userNavigation = [
   { name: "Your Profile", href: "/me" },
   // { name: "Settings", href: "/account/settings" },
-  { name: "Logout", href: "/logout" },
+  // { name: "Logout", href: "/logout" },
 ];
 
 function classNames(...classes: string[]) {
@@ -30,7 +30,7 @@ function classNames(...classes: string[]) {
 
 export const NavigationBar: FunctionComponent<Props> = function NavigationBar(props) {
   const { pathname } = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const navigation = props.navigation.map(item => {
     return { ...item, current: new RegExp(`^${item.href}$`).test(pathname) };
@@ -120,6 +120,22 @@ export const NavigationBar: FunctionComponent<Props> = function NavigationBar(pr
                                 )}
                               </Menu.Item>
                             ))}
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  onClick={e => {
+                                    e.preventDefault();
+                                    logout();
+                                  }}
+                                  className={classNames(
+                                    active ? "bg-gray-100" : "",
+                                    "block px-4 py-2 text-sm text-gray-700 w-full text-left"
+                                  )}
+                                >
+                                  Logout
+                                </button>
+                              )}
+                            </Menu.Item>
                           </Menu.Items>
                         </Transition>
                       </Menu>
@@ -196,6 +212,15 @@ export const NavigationBar: FunctionComponent<Props> = function NavigationBar(pr
                         </a>
                       </Link>
                     ))}
+                    <button
+                      onClick={e => {
+                        e.preventDefault();
+                        logout();
+                      }}
+                      className="block px-3 py-2 w-full text-left rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700"
+                    >
+                      Logout
+                    </button>
                   </div>
                 </div>
               )}
