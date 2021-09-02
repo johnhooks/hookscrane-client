@@ -4,7 +4,7 @@
 
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Home from "../pages/index";
+import Home from "pages/index";
 
 // TODO read this https://nextjs.org/docs/testing
 // TODO add a tsconfig so the test folder isn't continually rebuilt in VSCode

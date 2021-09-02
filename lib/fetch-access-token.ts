@@ -13,8 +13,11 @@ const { fetch } = fetchPonyfill();
 const ENDPOINT = LOCAL_API_ENDPOINT as string;
 
 /**
- * Fetch an api access token in the SSR environment.
+ * Attempt to fetch an API accessToken in the SSR environment.
  * This function should only be called from inside a `getServerSideProps` function.
+ *
+ * It passes the response Set-Cookie header to the client, so it can refreshing the session.
+ * The access token used for SSR will be abandoned after one use.
  */
 export async function fetchAccessToken(ctx: Context): Promise<Maybe<AccessToken>> {
   const cookies = cookie.parse(ctx.req.headers?.cookie ?? "");

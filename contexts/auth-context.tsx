@@ -6,6 +6,7 @@ import { isObject, isString } from "lodash-es";
 
 import type { Maybe, AccessToken } from "lib/interfaces";
 
+import { logger } from "lib/logger";
 import { useRefreshToken } from "hooks/use-refresh-token";
 import { API_ENDPOINT } from "lib/constants";
 import { MeQuery, MeDocument, User } from "generated/types";
@@ -17,7 +18,6 @@ type Props = {
 };
 
 interface Context {
-  loading: boolean;
   user: Maybe<User>;
   setUser: (user: User) => void;
   login: (email: string, password: string) => Promise<void>;
@@ -38,14 +38,32 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     data = client.readQuery<MeQuery>({ query: MeDocument });
   } catch (error) {
     if (error instanceof Error) {
-      console.log(error.message);
+      logger.error("[Auth] Unable to read MeQuery", error);
     }
   }
 
-  const [loading] = useRefreshToken(accessToken, setAccessToken);
+  /** NOTE: What happens if multiple tabs attempt to refresh at the same time?
+   * Only one would succeed, the others should fail, and because useRefreshToken retries
+   * 3 times on failure, the tabs that failed will retry and because the cookie was refreshed by
+   * the previous tab it should succeed.
+   *
+   * What happens with lots of tabs open? It seems to work most the time, but some times it fails.
+   */
+  const loading = useRefreshToken(accessToken, setAccessToken);
   const [user, setUser] = useState<Maybe<User>>(data?.me || null); // Set user if provided through SSR
 
+  // Initialize watching localStorage in order to sync logout between tabs.
   useEffect(() => {
+    window.addEventListener("storage", syncLogout);
+    return function cleanup() {
+      window.removeEventListener("storage", syncLogout);
+    };
+  });
+
+  useEffect(() => {
+    // Token refresh must have failed and we still have user data in the browser.
+    if (!loading && !accessToken && user) return clearSessionData();
+
     if (!accessToken || user) return;
 
     client
@@ -59,10 +77,11 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
-  const login = async (email: string, password: string): Promise<void> => {
+  async function login(email: string, password: string): Promise<void> {
     if (typeof window === "undefined") {
       throw new Error("The AuthContext login function should never to be called by the server");
     }
+
     const response = await fetch(`${API_ENDPOINT}/login`, {
       method: "POST",
       credentials: "include",
@@ -72,18 +91,20 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
       },
       body: JSON.stringify({ email, password }),
     });
+
     const data = await response.json();
+
     if (isAccessTokenPayload(data)) {
       setAccessToken({ token: data.token, tokenExpires: new Date(data.tokenExpires) });
-      console.log(`Successfully logged in`, "info");
+      logger.debug(`[Auth] Successfully logged in`);
     } else {
-      throw new Error("Failed login attempt");
+      throw new Error("[Auth] Failed login attempt");
     }
-  };
+  }
 
-  const logout = async (): Promise<void> => {
+  async function logout(): Promise<void> {
     if (typeof window === "undefined") {
-      throw new Error("The AuthContext logout function should never to be called by the server");
+      throw new Error("[Auth] The AuthContext logout function should never to be called by the server");
     }
     const response = await fetch(`${API_ENDPOINT}/logout`, {
       method: "POST",
@@ -95,24 +116,36 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
       body: JSON.stringify({}),
     });
     if (response.status === 200) {
-      setUser(null);
-      setAccessToken(null);
       window.localStorage.setItem("logoutSync", new Date().toISOString());
-      // https://www.apollographql.com/docs/react/networking/authentication/#reset-store-on-logout
-      // The most straightforward way to ensure that the UI and store state reflects the current user's
-      // permissions is to call client.resetStore() after your login or logout process has completed.
-      // This will cause the store to be cleared and all active queries to be refetched. If you just
-      // want the store to be cleared and don't want to refetch active queries, use client.clearStore()
-      // instead. Another option is to reload the page, which will have a similar effect.
-      location.reload();
-      console.log(`Successfully logged out`, "info");
+      clearSessionData();
     } else {
-      throw new Error("Failed logout attempt");
+      throw new Error("[Auth] Failed logout attempt");
     }
-  };
+  }
 
-  AuthContext = createContext<Context>({ loading, user, setUser, login, logout });
-  return <AuthContext.Provider value={{ loading, user, setUser, login, logout }}>{children}</AuthContext.Provider>;
+  function syncLogout(event: StorageEvent): void {
+    if (event.key === "logoutSync") {
+      logger.debug("[Auth] Synced logout");
+      clearSessionData();
+    }
+  }
+
+  function clearSessionData() {
+    setUser(null);
+    setAccessToken(null);
+    // https://www.apollographql.com/docs/react/networking/authentication/#reset-store-on-logout
+    // The most straightforward way to ensure that the UI and store state reflects the current user's
+    // permissions is to call client.resetStore() after your login or logout process has completed.
+    // This will cause the store to be cleared and all active queries to be refetched. If you just
+    // want the store to be cleared and don't want to refetch active queries, use client.clearStore()
+    // instead. Another option is to reload the page, which will have a similar effect.
+    location.reload();
+    console.log("[Auth] Successfully cleared session data");
+  }
+
+  AuthContext = createContext<Context>({ user, setUser, login, logout });
+
+  return <AuthContext.Provider value={{ user, setUser, login, logout }}>{children}</AuthContext.Provider>;
 };
 
 function isAccessTokenPayload(value: unknown): value is { token: string; tokenExpires: string } {

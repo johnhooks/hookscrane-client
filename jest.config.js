@@ -11,6 +11,13 @@ module.exports = {
     /* Handle image imports
     https://jestjs.io/docs/webpack#handling-static-assets */
     "^.+\\.(jpg|jpeg|png|gif|webp|svg)$": "<rootDir>/__mocks__/fileMock.js",
+
+    /* Handle TypeScript module paths */
+    "^components/(.*)$": "<rootDir>/components/$1",
+    "^contexts/(.*)$": "<rootDir>/contexts/$1",
+    "^hooks/(.*)$": "<rootDir>/hooks/$1",
+    "^lib/(.*)$": "<rootDir>/lib/$1",
+    "^pages/(.*)$": "<rootDir>/pages/$1",
   },
   setupFilesAfterEnv: ["<rootDir>/test/setup.js"],
   testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/"],

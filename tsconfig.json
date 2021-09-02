@@ -9,7 +9,8 @@
     { "path": "contexts" },
     { "path": "graphql" },
     { "path": "hooks" },
-    { "path": "lib" }
+    { "path": "lib" },
+    { "path": "pages" }
   ],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.json"],
   "exclude": ["node_modules"]

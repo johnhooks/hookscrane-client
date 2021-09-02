@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // This had to be shifted up a level in order to include ../schema/generated/nexus.ts
+    // Everything seems to be working okay.
+    "rootDir": "../",
+    "outDir": "../build/tests",
+  },
+  "references": [
+    { "path": "../components" },
+    { "path": "../contexts" },
+    { "path": "../hooks" },
+    { "path": "../lib" },
+    { "path": "../pages" }
+  ],
+  "include": ["**/*"]
+}

@@ -21,3 +21,12 @@
 
 - [How to Format Code on Save in VS Code with ESlint](https://www.aleksandrhovhannisyan.com/blog/format-code-on-save-vs-code-eslint/)
 - [How to debug Node.js apps in Visual Studio Code](https://blog.logrocket.com/how-to-debug-node-js-apps-in-visual-studio-code/) - Review again later
+
+## Access and Refresh Token Auth
+
+- [The Ultimate Guide to handling JWTs on frontend clients #Logout](https://hasura.io/blog/best-practices-of-using-jwt-with-graphql/#logout)
+
+## Testing
+
+- [Mocking the fetch api with jest](https://benjaminjohnson.me/blog/mocking-fetch)
+- [How To Mock Fetch in Jest](https://www.leighhalliday.com/mock-fetch-jest)
