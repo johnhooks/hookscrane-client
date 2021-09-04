@@ -80,12 +80,10 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
   }
 
   function online() {
-    //
     if (refreshStatusRef.current !== RefreshStatus.Fetching && AccessToken.validRefreshTokenExpires()) {
       logger.debug("[Auth] Forcing token refresh after coming back online");
       forceRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }
 
   function syncLogout(event: StorageEvent): void {
@@ -139,10 +137,10 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     });
 
     const body = await response.text();
-    accessToken = AccessToken.parse(body);
+    const token = AccessToken.parse(body);
 
-    if (accessToken) {
-      setAccessToken(accessToken);
+    if (token) {
+      setAccessToken(token);
       logger.debug("[Auth] Successfully logged in");
     } else {
       throw new Error("[Auth] Failed login attempt");

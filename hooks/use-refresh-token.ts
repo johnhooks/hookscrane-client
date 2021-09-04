@@ -53,8 +53,11 @@ export function useRefreshToken(
    * Attempt to fetch the initial accessToken if the refreshTokenExpires cookie seems valid.
    */
   useEffect(() => {
-    if (!AccessToken.validRefreshTokenExpires()) return;
-    refreshCallback();
+    if (!AccessToken.validRefreshTokenExpires()) {
+      setStatus(Status.Missing);
+    } else {
+      refreshCallback();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -64,7 +67,14 @@ export function useRefreshToken(
    */
   useEffect(() => {
     // If there isn't an valid refreshTokenExpires no need to schedule a refresh.
-    if (status === Status.Fetching || !AccessToken.validRefreshTokenExpires()) return;
+    if (status === Status.Fetching || !AccessToken.validRefreshTokenExpires()) {
+      if (status === Status.Fetching) {
+        logger.debug("[Auth] skip initializing refresh token interval because already fetching");
+      } else {
+        logger.debug("[Auth] skip initializing refresh token interval because of missing or invalid refreshTokenExpires cookie"); // prettier-ignore
+      }
+      return;
+    }
 
     logger.debug("[Auth] Initializing refresh token interval");
     let interval: NodeJS.Timer | null = setInterval(tick, 60_000);
