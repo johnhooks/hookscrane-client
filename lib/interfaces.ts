@@ -1,6 +1,6 @@
 export type Maybe<T> = T | null;
 
-export interface AccessToken {
+export interface AccessTokenPayload {
   token: string;
-  tokenExpires: Date;
+  tokenExpires: string;
 }

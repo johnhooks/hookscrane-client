@@ -3,11 +3,17 @@ import { promiseWithTimeout } from "./promise-with-timeout";
 
 const { fetch } = fetchPonyfill();
 
-export function fetchWithTimeout(
-  timeout: number,
-  input: globalThis.RequestInfo,
-  init?: globalThis.RequestInit | undefined
-): Promise<globalThis.Response> {
+export interface FetchWithTimeoutOptions {
+  input: globalThis.RequestInfo;
+  init?: globalThis.RequestInit | undefined;
+  timeout?: number;
+}
+
+export function fetchWithTimeout({
+  input,
+  init,
+  timeout = 500,
+}: FetchWithTimeoutOptions): Promise<globalThis.Response> {
   const controller = new AbortController();
   const signal = controller.signal;
   return promiseWithTimeout(timeout, fetch(input, { ...init, signal }), () => {

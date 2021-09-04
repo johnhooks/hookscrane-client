@@ -4,7 +4,8 @@ import cookie from "cookie";
 import fetchPonyfill from "fetch-ponyfill";
 import { isString } from "lodash-es";
 
-import type { Maybe, AccessToken } from "./interfaces";
+import type { Maybe } from "./interfaces";
+import { AccessToken } from "./access-token";
 import { LOCAL_API_ENDPOINT } from "./constants";
 
 type Context = GetServerSidePropsContext;
@@ -46,7 +47,8 @@ export async function fetchAccessToken(ctx: Context): Promise<Maybe<AccessToken>
     });
 
     if (response.status === 200) {
-      const { token, tokenExpires } = await response.json();
+      const body = await response.text();
+      const accessToken = AccessToken.parse(body);
 
       const maybeSetCookie = response.headers.get("Set-Cookie");
 
@@ -55,7 +57,7 @@ export async function fetchAccessToken(ctx: Context): Promise<Maybe<AccessToken>
         ctx.res.setHeader("Set-Cookie", maybeSetCookie);
       }
 
-      return { token, tokenExpires: new Date(tokenExpires) };
+      return accessToken;
     } else {
       throw new Error(response.statusText);
     }

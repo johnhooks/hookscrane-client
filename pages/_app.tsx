@@ -4,7 +4,8 @@ import type { AppProps } from "next/app";
 import { ApolloProvider } from "@apollo/client";
 
 import { AuthProvider } from "contexts/auth-context";
-import type { Maybe, AccessToken } from "lib/interfaces";
+import type { Maybe } from "lib/interfaces";
+import type { AccessToken } from "lib/access-token";
 import { useApollo } from "lib/apollo-client";
 import Layout from "components/layout";
 
