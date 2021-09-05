@@ -8,13 +8,12 @@ import type { Maybe } from "lib/interfaces";
 import { API_ENDPOINT } from "lib/constants";
 import { logger } from "lib/logger";
 import { AccessToken } from "lib/access-token";
-import { useRefreshToken, Status as RefreshStatus } from "hooks/use-refresh-token";
-
+import { forceTokenRefresh, silentTokenRefresh } from "lib/silent-token-refresh";
 import { MeQuery, MeDocument, User } from "generated/types";
 
 /**
  * TODO: Need to handle how to pause refresh of the tokens when offline.
- * [ ] - Use the `online` and `offline` events on the `window`
+ * [x] - Use the `online` and `offline` events on the `window`
  * [ ] - Look into using a service worker to refresh accessTokens and them to fetch requests.
  */
 
@@ -48,7 +47,7 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     data = client.readQuery<MeQuery>({ query: MeDocument });
   } catch (error) {
     if (error instanceof Error) {
-      logger.error("[Auth] Unable to read MeQuery", error);
+      logger.error("[Auth] failed to read MeQuery from ApolloClient", error);
     }
   }
 
@@ -59,11 +58,7 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
    *
    * What happens with lots of tabs open? It seems to work most the time, but some times it fails.
    */
-  const [refreshStatus, forceRefresh] = useRefreshToken(accessToken, setAccessToken);
   const [user, setUser] = useState<Maybe<User>>(data?.me || null); // Set user if provided through SSR
-  const refreshStatusRef = useRef(refreshStatus);
-
-  refreshStatusRef.current = refreshStatus;
 
   function clearSession() {
     setAccessToken(null);
@@ -76,54 +71,58 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     // want the store to be cleared and don't want to refetch active queries, use client.clearStore()
     // instead. Another option is to reload the page, which will have a similar effect.
     location.reload();
-    console.log("[Auth] Successfully cleared session data");
+    console.log("[Auth] session data cleared");
   }
 
-  function online() {
-    if (refreshStatusRef.current !== RefreshStatus.Fetching && AccessToken.validRefreshTokenExpires()) {
-      logger.debug("[Auth] Forcing token refresh after coming back online");
-      forceRefresh();
-    }
+  function onlineEventHandler() {
+    forceTokenRefresh(setAccessToken);
   }
 
-  function syncLogout(event: StorageEvent): void {
+  function storageEventHandler(event: StorageEvent): void {
+    // watch localStorage in order to sync logout between tabs.
     if (event.key === "logoutSync") {
-      logger.debug("[Auth] Syncing logout");
+      logger.debug("[Auth] initializing synchronized logout");
       clearSession();
     }
   }
 
-  // Initialize watching localStorage in order to sync logout between tabs.
   useEffect(() => {
-    logger.debug("[Util] Initializing online callback");
-    window.addEventListener("online", online);
-    window.addEventListener("storage", syncLogout);
+    logger.debug("[Util] initializing window event listeners");
+    window.addEventListener("online", onlineEventHandler);
+    window.addEventListener("storage", storageEventHandler);
     return function cleanup() {
-      logger.debug("[Util Cleaning up online ");
-      window.removeEventListener("online", online);
-      window.removeEventListener("storage", syncLogout);
+      logger.debug("[Util cleaning up window event listeners");
+      window.removeEventListener("online", onlineEventHandler);
+      window.removeEventListener("storage", storageEventHandler);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!accessToken || user) return;
+    // Initialize an interval to refresh the access token.
+    const cleanup = silentTokenRefresh(accessToken, setAccessToken);
+    if (cleanup) return cleanup;
+  }, [accessToken, setAccessToken]);
 
+  useEffect(() => {
+    if (!accessToken || user) return;
     client
       .query<MeQuery>({ query: MeDocument, fetchPolicy: "network-only" })
       .then(({ data }) => {
-        if (data?.me) setUser(data.me);
+        if (data?.me) {
+          logger.debug("[Auth] request to fetch user account data successful");
+          setUser(data.me);
+        }
       })
       .catch(error => {
-        // throw new Error(`User data request failed: ${error.message}`);
-        console.error(`User data request failed: ${error.message}`);
+        throw new Error(`[Auth] request to fetch user account data failed: ${error.message}`);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken]);
+  }, [accessToken, client, setUser, user]);
 
   async function login(email: string, password: string): Promise<void> {
     if (typeof window === "undefined") {
-      throw new Error("The AuthContext login function should never to be called by the server");
+      // throw new Error("[Auth] login function called by server");
+      return;
     }
 
     const response = await fetch(`${API_ENDPOINT}/login`, {
@@ -141,15 +140,16 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
 
     if (token) {
       setAccessToken(token);
-      logger.debug("[Auth] Successfully logged in");
+      logger.debug("[Auth] login successful");
     } else {
-      throw new Error("[Auth] Failed login attempt");
+      throw new Error("[Auth] login attempt failed");
     }
   }
 
   async function logout(): Promise<void> {
     if (typeof window === "undefined") {
-      throw new Error("[Auth] The AuthContext logout function should never to be called by the server");
+      // throw new Error("[Auth] logout function called by server");
+      return;
     }
 
     const response = await fetch(`${API_ENDPOINT}/logout`, {
@@ -166,7 +166,7 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
       window.localStorage.setItem("logoutSync", new Date().toISOString());
       clearSession();
     } else {
-      throw new Error("[Auth] Failed logout attempt");
+      throw new Error("[Auth] logout attempt failed");
     }
   }
 
