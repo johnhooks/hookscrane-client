@@ -10,6 +10,7 @@ export enum Status {
   Fetching,
   Missing,
   Ready,
+  Unknown,
 }
 
 /**
@@ -32,7 +33,7 @@ export function useRefreshToken(
    * AuthContext to know when to clean up an invalid session.
    */
 
-  const [status, setStatus] = useState(Status.Fetching);
+  const [status, setStatus] = useState(Status.Unknown);
   const refreshCallback = useCallback(
     function refresh() {
       setStatus(Status.Fetching);
@@ -67,13 +68,12 @@ export function useRefreshToken(
    */
   useEffect(() => {
     // If there isn't an valid refreshTokenExpires no need to schedule a refresh.
-    if (status === Status.Fetching || !AccessToken.validRefreshTokenExpires()) {
-      if (status === Status.Fetching) {
-        logger.debug("[Auth] skip initializing refresh token interval because already fetching");
-      } else {
-        logger.debug("[Auth] skip initializing refresh token interval because of missing or invalid refreshTokenExpires cookie"); // prettier-ignore
-      }
+    if (status === Status.Unknown) {
       return;
+    } else if (status === Status.Fetching) {
+      return logger.debug("[Auth] skip initializing refresh token interval because already fetching");
+    } else if (!AccessToken.validRefreshTokenExpires()) {
+      return logger.debug("[Auth] skip initializing refresh token interval because of missing or invalid refreshTokenExpires cookie"); // prettier-ignore
     }
 
     logger.debug("[Auth] Initializing refresh token interval");
@@ -94,7 +94,6 @@ export function useRefreshToken(
     }
 
     return cleanup;
-    // Does the status dependency cause this to constantly rerender?
   }, [accessToken, status, refreshCallback]);
 
   // Always return loading false in SSR

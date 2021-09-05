@@ -81,6 +81,7 @@ export class AccessToken {
           },
           body: JSON.stringify({}),
         },
+        timeout: 10_000,
       });
 
       if (response.status === 200) {
