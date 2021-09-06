@@ -6,7 +6,7 @@ import type { Maybe, AccessTokenPayload } from "lib/interfaces";
 import { logger } from "lib/logger";
 
 export class AccessToken {
-  constructor(readonly expires: Date) {}
+  constructor(readonly token: string, readonly expires: Date) {}
 
   static isPayload(value: unknown): value is { token: string; tokenExpires: string } {
     return (
@@ -24,7 +24,7 @@ export class AccessToken {
       const decoded = jwtDecode<JwtPayload>(data.token);
       if (typeof decoded.exp === "number" && now < decoded.exp) {
         const expires = new Date(decoded.exp * 1000);
-        return new AccessToken(expires);
+        return new AccessToken(data.token, expires);
       }
       return null;
     } catch (error) {
