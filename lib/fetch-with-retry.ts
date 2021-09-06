@@ -19,25 +19,25 @@ export async function fetchWithRetry({
 }: FetchWithRetryOptions): Promise<globalThis.Response> {
   let delay = 0;
 
-  logger.debug(`[Fetch] Initializing fetch request`);
+  logger.debug(`[Fetch] initializing fetch request`);
 
   for (let i = 0; i < attempts; i++) {
     if (i !== 0) {
       delay = i === 1 ? initial : delay + delay; // the delay of each subsequent retry is increased exponentially
       delay = delay > max ? max : delay;
-      if (jitter) delay *= Math.random();
-      logger.debug(`[Fetch] Delaying ${delay} ms before attempting the next fetch request`);
+      if (jitter) delay = delay * Math.random();
+      logger.debug(`[Fetch] delaying ${delay} ms before attempting the next fetch request`);
     }
 
     try {
       await wait(delay);
-      logger.debug(`[Fetch] Initializing fetch request attempt ${i + 1}`);
+      logger.debug(`[Fetch] initializing fetch request attempt ${i + 1}`);
       const response = await fetchWithTimeout({ input, init, timeout });
       return response;
     } catch (error) {
-      logger.error(`[Fetch] Failed fetch request attempt ${i + 1}`, error);
+      logger.error(`[Fetch] failed fetch request attempt ${i + 1}`, error);
     }
   }
 
-  throw new Error(`[Fetch] Failed to fetch resource in ${attempts} attempts`);
+  throw new Error(`[Fetch] failed to fetch resource in ${attempts} attempts`);
 }

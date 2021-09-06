@@ -6,6 +6,7 @@ import { API_ENDPOINT, LOCAL_API_ENDPOINT } from "./constants";
 import { AccessToken } from "./access-token";
 import { fetchWithRetry } from "./fetch-with-retry";
 import { logger } from "./logger";
+import { wait } from "./utils";
 
 export enum Status {
   Error,
@@ -34,7 +35,7 @@ async function tokenRefresh(): Promise<Maybe<AccessToken>> {
   }
   try {
     status = Status.Fetching;
-    logger.debug("[Auth] initiating request to token refresh");
+    logger.debug("[Auth] initiating request to refresh tokens");
 
     const response = await fetchWithRetry({
       attempts: 20,
@@ -83,24 +84,23 @@ export function silentTokenRefresh(
   if (status === Status.Initializing && !accessToken) {
     // Maybe fetch the initial token
     if (validRefreshTokenExpiresCookie()) {
-      tokenRefresh()
+      withRefreshLock(tokenRefresh)
         .then(token => {
           setAccessToken(token);
         })
-        // There is already a try catch inside tokenRefresh... but just in case
         .catch(error => {
           throw error;
         });
     }
     return null;
-  } else if (status === Status.Error) {
+  } else if (status === Status.Error && !accessToken) {
     return _error("[Auth] skipping initializing refresh token interval because of previous error");
   } else if (status === Status.Fetching) {
     return _error("[Auth] skipping initializing refresh token interval because already fetching");
   } else if (status === Status.Watching) {
     return _error("[Auth] skipping initializing refresh token interval because already watching");
   } else if (!validRefreshTokenExpiresCookie()) {
-    logger.error("[Auth] skip initializing refresh token interval because of missing or invalid refreshTokenExpires cookie"); // prettier-ignore
+    logger.error("[Auth] skipping initializing refresh token interval because of missing or invalid refreshTokenExpires cookie"); // prettier-ignore
     return null;
   }
 
@@ -110,12 +110,11 @@ export function silentTokenRefresh(
 
   function tick() {
     if (shouldRefreshTokens(accessToken)) {
-      tokenRefresh()
+      withRefreshLock(tokenRefresh)
         .then(token => {
           setAccessToken(token);
         })
         .catch(error => {
-          // There is already a try catch inside refreshTokens... but just in case
           throw error;
         });
     }
@@ -152,4 +151,26 @@ function _error(msg?: string, ...optionalParams: any[]): null {
   status = Status.Error;
   logger.error(msg, optionalParams);
   return null;
+}
+
+/**
+ * This is an attempt to keep multiple tabs from attempting refreshing tokens at the same time.
+ * The real solution is probably a service worker.
+ */
+async function withRefreshLock<T>(cb: () => Promise<T>, attempts = 20): Promise<T> {
+  for (let i = 0; i < attempts; i++) {
+    const lock = window.localStorage.getItem("refreshLock");
+    logger.debug("[Auth] attempting to acquire token refresh lock");
+    if (!lock || lock === "0") {
+      window.localStorage.setItem("refreshLock", "1");
+      logger.debug("[Auth] acquired token refresh lock");
+      const result = await cb();
+      window.localStorage.setItem("refreshLock", "0");
+      logger.debug("[Auth] released token refresh lock");
+      return result;
+    }
+    logger.debug(`[Auth] failed to acquire token refresh lock, attempt ${i + 1}`);
+    await wait(1000);
+  }
+  throw new Error("[Lock] unable to acquire token refresh lock");
 }
