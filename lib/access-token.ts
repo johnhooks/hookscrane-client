@@ -1,3 +1,4 @@
+import jwtDecode, { JwtPayload } from "jwt-decode";
 import { formatDistance, subMinutes } from "date-fns";
 import { isObject, isString } from "lodash-es";
 
@@ -5,7 +6,7 @@ import type { Maybe, AccessTokenPayload } from "lib/interfaces";
 import { logger } from "lib/logger";
 
 export class AccessToken {
-  constructor(readonly token: string, readonly expires: Date) {}
+  constructor(readonly expires: Date) {}
 
   static isPayload(value: unknown): value is { token: string; tokenExpires: string } {
     return (
@@ -16,10 +17,16 @@ export class AccessToken {
   }
 
   static parse(payload: string): Maybe<AccessToken> {
-    let data: unknown;
-
     try {
-      data = JSON.parse(payload);
+      const data = JSON.parse(payload);
+      if (!AccessToken.isPayload(data)) return null;
+      const now = Date.now().valueOf() / 1000;
+      const decoded = jwtDecode<JwtPayload>(data.token);
+      if (typeof decoded.exp === "number" && now < decoded.exp) {
+        const expires = new Date(decoded.exp * 1000);
+        return new AccessToken(expires);
+      }
+      return null;
     } catch (error) {
       if (error instanceof SyntaxError) {
         // `fetch` may have received an incomplete response body
@@ -27,14 +34,6 @@ export class AccessToken {
         return null;
       }
       throw error;
-    }
-
-    if (AccessToken.isPayload(data)) {
-      const expires = new Date(data.tokenExpires);
-      if (!(expires instanceof Date) || isNaN(expires.valueOf())) return null;
-      return new AccessToken(data.token, expires);
-    } else {
-      return null;
     }
   }
 
