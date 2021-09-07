@@ -6,17 +6,19 @@ export interface Props {
   label: string;
   checked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  invalid?: boolean;
   description?: string;
   note?: string;
 }
 
-export function Checkbox({ id, name, label, checked, onChange, description }: PropsWithChildren<Props>) {
+export function Checkbox({ id, name, label, checked, onChange, invalid, description }: PropsWithChildren<Props>) {
   return (
     <div className="relative flex items-start">
       <div className="flex items-center h-5">
         <input
           id={id}
           aria-describedby={`${id}-description`}
+          aria-invalid={invalid}
           name={name}
           type="checkbox"
           checked={checked}
@@ -29,7 +31,7 @@ export function Checkbox({ id, name, label, checked, onChange, description }: Pr
           {label}
         </label>
         {description && (
-          <p id={`${id}-description`} className="text-gray-500">
+          <p id={`${id}-description`} className={invalid ? "text-red-600" : "text-gray-500"}>
             {description}
           </p>
         )}

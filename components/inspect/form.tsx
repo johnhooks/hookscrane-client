@@ -5,6 +5,7 @@ import { format as formatDate } from "date-fns";
 import type { Props as CheckboxProps } from "components/form/checkbox";
 import { TextInput, Props as TextInputProps } from "components/form/text-input";
 import { Checklist } from "components/form/checklist";
+import { Checkbox } from "components/form/checkbox";
 import { DetailList, DetailItemProps } from "components/detail-list";
 import { mapToDate } from "lib/date";
 
@@ -27,8 +28,13 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
   children,
 }: PropsWithChildren<Props<Item, Detail>>) {
   const datetime = new Date();
+  const [accepted, setAccepted] = useState<boolean | null>(null);
   const [date, setDate] = useState(formatDate(datetime, "yyyy-MM-dd"));
   const [time, setTime] = useState(formatDate(datetime, "HH:mm"));
+
+  const handleAcceptChange: (e: React.ChangeEvent<HTMLInputElement>) => void = e => {
+    setAccepted(!accepted);
+  };
 
   const handleDateChange: OnChangeHandler = e => {
     setDate(e.target.value);
@@ -57,16 +63,24 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
     e.preventDefault();
     try {
       const datetime = mapToDate({ date, time });
+      if (!accepted) {
+        throw new Error("Inspection must be accepted and digitally signed to submit");
+      }
       handleSubmit({ datetime });
     } catch (error) {
       // TODO Display an error about an invalid date.
-      console.log(error);
+      console.error(error);
     }
   };
 
   return (
     <>
-      <DetailList items={details} />
+      <header className="text-center">
+        <h3 className="text-1xl font-bold tracking-tight text-gray-900 sm:text-2xl">Details</h3>
+      </header>
+      <div className="mt-2 sm:mt-4">
+        <DetailList items={details} />
+      </div>
       <form
         action="#"
         method="POST"
@@ -87,7 +101,10 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
           depending on what the form needs.
          */}
         {children}
-        <div className="sm:col-span-2">
+        <div className="sm:col-span-2 mt-2 sm:mt-4">
+          <header className="text-center">
+            <h3 className="text-1xl font-bold tracking-tight text-gray-900 sm:text-2xl">Criteria</h3>
+          </header>
           <Checklist
             name="Inspection criteria"
             items={inspectItems.map(item => ({
@@ -96,6 +113,22 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
             }))}
           />
         </div>
+        <section className="sm:col-span-2 mt-2 sm:mt-4">
+          <header className="text-center">
+            <h3 className="text-1xl font-bold tracking-tight text-gray-900 sm:text-2xl">Signature</h3>
+          </header>
+          <div className="mt-2 sm:mt-4">
+            <Checkbox
+              id="accept-input"
+              name="accept"
+              checked={accepted ?? false}
+              label="I, John Hooks, accept and digitally sign this form"
+              onChange={handleAcceptChange}
+              invalid={accepted !== null && !accepted}
+              description={accepted !== null && !accepted ? "Signature is required to submit" : undefined}
+            />
+          </div>
+        </section>
         <div className="sm:col-span-2 mt-4">
           <button
             type="submit"
