@@ -20,13 +20,14 @@ export enum Status {
 const TOKEN_REFRESH_LOCK_KEY = "tokenRefreshLock";
 const ENDPOINT = typeof window === "undefined" ? (LOCAL_API_ENDPOINT as string) : API_ENDPOINT;
 
-// module level private static property
+// private module variable
 let status = Status.Initializing;
 
-export async function forceTokenRefresh(setAccessToken: Dispatch<SetStateAction<Maybe<AccessToken>>>): Promise<void> {
-  if (status === Status.Fetching || status === Status.Watching) return;
-  if (validRefreshTokenExpiresCookie()) {
-    setAccessToken(await tokenRefresh());
+export function forceTokenRefresh(): Promise<Maybe<AccessToken>> {
+  if (status === Status.Fetching || status === Status.Watching || !validRefreshTokenExpiresCookie()) {
+    return Promise.resolve(null);
+  } else {
+    return withLock(TOKEN_REFRESH_LOCK_KEY, tokenRefresh);
   }
 }
 

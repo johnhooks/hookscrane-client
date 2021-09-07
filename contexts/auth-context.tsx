@@ -75,7 +75,13 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
   }
 
   function onlineEventHandler() {
-    forceTokenRefresh(setAccessToken);
+    forceTokenRefresh()
+      .then(token => {
+        setAccessToken(token);
+      })
+      .catch(error => {
+        throw error;
+      });
   }
 
   function storageEventHandler(event: StorageEvent): void {
