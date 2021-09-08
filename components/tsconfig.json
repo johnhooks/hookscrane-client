@@ -7,7 +7,8 @@
     "outDir": "../build/components"
   },
   "references": [
-    { "path": "../contexts" }
+    { "path": "../contexts" },
+    { "path": "../helpers" }
   ],
   "include": ["**/*"]
 }

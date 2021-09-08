@@ -7,12 +7,14 @@ export interface Props {
   name: string;
   label: string;
   value: string;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: "text" | "email" | "number" | "password" | "date" | "time";
   placeholder?: string | undefined;
   className?: string | undefined;
-  invalid?: boolean | undefined;
   description?: string | undefined;
+  error?: string;
+  showErrors?: boolean;
 }
 
 const baseClassName = "block w-full rounded-md sm:text-sm shadow-sm";
@@ -24,12 +26,15 @@ export const TextInput: FunctionComponent<Props> = function TextInput({
   name,
   label,
   value,
+  onBlur,
   onChange,
   type = "text",
   placeholder,
-  invalid,
   description,
+  error,
+  showErrors,
 }) {
+  const invalid = showErrors === true && typeof error === "string";
   const className = baseClassName + " " + (invalid ? invalidClassName : validClassName);
 
   const inputProps: DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> = {
@@ -39,6 +44,7 @@ export const TextInput: FunctionComponent<Props> = function TextInput({
     value,
     className,
     placeholder,
+    onBlur,
     onChange,
     "aria-describedby": description ? `${id}-description` : undefined,
     "aria-invalid": invalid,
@@ -57,11 +63,14 @@ export const TextInput: FunctionComponent<Props> = function TextInput({
           </div>
         )}
       </div>
-      {description && (
-        <p id={`${id}-description`} className={`mt-2 text-sm ${invalid ? "text-red-600" : "text-gray-500"}`}>
-          {description}
-        </p>
-      )}
+      <section id={`${id}-description`}>
+        {description && <p className="text-gray-500">{description}</p>}
+        {invalid && (
+          <p id={`${id}-error`} className="text-red-600">
+            {error}
+          </p>
+        )}
+      </section>
     </div>
   );
 };

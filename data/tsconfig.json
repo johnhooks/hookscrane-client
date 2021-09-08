@@ -4,14 +4,9 @@
     // This had to be shifted up a level in order to include ../schema/generated/nexus.ts
     // Everything seems to be working okay.
     "rootDir": "../",
-    "outDir": "../build/pages",
+    "outDir": "../build/data",
   },
   "references": [
-    { "path": "../components" },
-    { "path": "../contexts" },
-    { "path": "../data" },
-    { "path": "../hooks" },
-    { "path": "../lib" }
   ],
-  "include": ["**/*"]
+  "include": ["**/*.json"]
 }

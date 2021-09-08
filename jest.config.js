@@ -15,6 +15,7 @@ module.exports = {
     /* Handle TypeScript module paths */
     "^components/(.*)$": "<rootDir>/components/$1",
     "^contexts/(.*)$": "<rootDir>/contexts/$1",
+    "^helpers/(.*)$": "<rootDir>/helpers/$1",
     "^hooks/(.*)$": "<rootDir>/hooks/$1",
     "^lib/(.*)$": "<rootDir>/lib/$1",
     "^pages/(.*)$": "<rootDir>/pages/$1",

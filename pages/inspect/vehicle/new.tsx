@@ -8,11 +8,12 @@ import { useRouter } from "next/router";
 import { useCreateDailyVehicleInspectMutation } from "generated/types";
 import { InspectForm, InspectItem } from "components/inspect/form";
 import { TextInput } from "components/form/text-input";
-
+import { useTextInputState } from "hooks/use-input-state";
+import { validateInteger } from "helpers/validators";
 import craneData from "data/crane-data.json";
 import vehicleInspectItemData from "data/daily-vehicle-inspect.json";
 
-const NewInspect: NextPage = () => {
+const NewVehicleInspect: NextPage = () => {
   const checkboxesMemo: InspectItem[] = useMemo(() => {
     return vehicleInspectItemData.map(({ name, label }) => ({
       id: `${name}-input`,
@@ -24,10 +25,10 @@ const NewInspect: NextPage = () => {
 
   const router = useRouter();
   const [create, { data, loading, error }] = useCreateDailyVehicleInspectMutation();
-  const [miles, setMiles] = useState("");
+  const miles = useTextInputState({ value: "" }, validateInteger);
   const [items, setItems] = useState(checkboxesMemo);
 
-  if (loading) return <p>Submitting...</p>;
+  if (data || loading) return <p>Submitting...</p>;
   if (error) return <p>Submission error! {error.message}</p>;
 
   const details = [
@@ -42,69 +43,59 @@ const NewInspect: NextPage = () => {
 
     // Allow the value to be blank
     if (value === "") {
-      setMiles("");
-      return;
+      return miles.onChange(e);
     }
 
     // Only change the value if it looks like an integer
     if (/^\d+$/.test(value)) {
       const int = parseInt(e.target.value);
       if (!isNaN(int)) {
-        setMiles(e.target.value);
-        return;
+        return miles.onChange(e);
       }
     }
   };
 
-  function handleSubmit({ datetime }: { datetime: Date }) {
-    try {
-      const deficiencies = items.filter(item => !item.checked).map(item => item.name);
-      const meta = deficiencies.length > 0 ? { deficiencies } : {};
-      const milesParsed = parseInt(miles);
-      if (isNaN(milesParsed)) throw new Error("Invalid miles value");
-      create({
-        variables: {
-          data: {
-            datetime,
-            miles: milesParsed,
-            meta,
-          },
+  function handleSubmit({ datetime, invalid }: { datetime: Date; invalid: boolean }) {
+    const deficiencies = items.filter(item => !item.checked).map(item => item.name);
+    const meta = deficiencies.length > 0 ? { deficiencies } : {};
+    const milesParsed = parseInt(miles.value);
+    if (isNaN(milesParsed)) throw new Error("Invalid miles value");
+    if (invalid) return;
+
+    create({
+      variables: {
+        data: {
+          datetime,
+          miles: milesParsed,
+          meta,
         },
-      }).then(result => {
-        const inspectId = result.data?.createDailyVehicleInspect?.id;
-        if (inspectId) {
-          router.push(`/inspect/${inspectId}`);
-          return;
-        }
-        throw new Error("Received unexpected input during daily inspection form submission");
-      });
-    } catch (error) {
-      console.log(error);
-    }
+      },
+    }).then(result => {
+      const inspectId = result.data?.createDailyVehicleInspect?.id;
+      if (inspectId) {
+        router.push(`/inspect/${inspectId}`);
+        return;
+      }
+      throw new Error("Received unexpected input during daily inspection form submission");
+    });
   }
 
   return (
     <>
       <Head>
-        <title>New Daily Vehicle Inspection - Hooks Crane</title>
+        <title>New Driver-Vehicle Inspection Report - Hooks Crane</title>
         <meta name="description" content="New vehicle inspection form" />
       </Head>
       <header className="bg-white sm:shadow">
         <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">Daily Vehicle Inspection</h1>
+          <h1 className="text-3xl font-bold text-gray-900">New Driver-Vehicle Inspection Report</h1>
         </div>
       </header>
       <div className="mt-4 sm:mt-6 overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <InspectForm details={details} inspectItems={items} setInspectItems={setItems} handleSubmit={handleSubmit}>
             <div className="sm:col-span-2">
-              <TextInput
-                value={miles.toString()}
-                id="miles-input"
-                name="miles"
-                label="Miles"
-                onChange={handleMilesChange}
-              />
+              <TextInput id="miles-input" name="miles" label="Miles" {...miles} onChange={handleMilesChange} />
             </div>
           </InspectForm>
         </div>
@@ -113,4 +104,4 @@ const NewInspect: NextPage = () => {
   );
 };
 
-export default NewInspect;
+export default NewVehicleInspect;

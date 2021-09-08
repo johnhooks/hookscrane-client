@@ -6,12 +6,14 @@ export interface Props {
   label: string;
   checked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  invalid?: boolean;
   description?: string;
+  error?: string;
   note?: string;
 }
 
-export function Checkbox({ id, name, label, checked, onChange, invalid, description }: PropsWithChildren<Props>) {
+export function Checkbox({ id, name, label, checked, onChange, description, error }: PropsWithChildren<Props>) {
+  const invalid = typeof error !== "undefined";
+
   return (
     <div className="relative flex items-start">
       <div className="flex items-center h-5">
@@ -30,11 +32,14 @@ export function Checkbox({ id, name, label, checked, onChange, invalid, descript
         <label htmlFor={id} className="font-medium text-gray-700">
           {label}
         </label>
-        {description && (
-          <p id={`${id}-description`} className={invalid ? "text-red-600" : "text-gray-500"}>
-            {description}
-          </p>
-        )}
+        <section id={`${id}-description`} className="mt-2 flex flex-col gap-y-2">
+          {description && <p className="text-gray-500">{description}</p>}
+          {error && (
+            <p id={`${id}-error`} className="text-red-600">
+              {error}
+            </p>
+          )}
+        </section>
       </div>
     </div>
   );

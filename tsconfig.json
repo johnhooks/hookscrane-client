@@ -7,7 +7,9 @@
   "references": [
     { "path": "components" },
     { "path": "contexts" },
+    { "path": "data" },
     { "path": "graphql" },
+    { "path": "helpers" },
     { "path": "hooks" },
     { "path": "lib" },
     { "path": "pages" }

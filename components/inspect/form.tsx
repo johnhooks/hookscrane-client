@@ -7,9 +7,10 @@ import { TextInput, Props as TextInputProps } from "components/form/text-input";
 import { Checklist } from "components/form/checklist";
 import { Checkbox } from "components/form/checkbox";
 import { DetailList, DetailItemProps } from "components/detail-list";
+import { useCheckboxState } from "hooks/use-checkbox-state";
+import { useTextInputState } from "hooks/use-input-state";
+import { validateDate, validateTime } from "helpers/validators";
 import { mapToDate } from "lib/date";
-
-type OnChangeHandler = TextInputProps["onChange"];
 
 export type InspectItem = Omit<CheckboxProps, "onChange">;
 
@@ -17,7 +18,7 @@ interface Props<Item extends InspectItem, Detail extends DetailItemProps> {
   details: Detail[];
   inspectItems: Item[];
   setInspectItems: (value: SetStateAction<Item[]>) => void;
-  handleSubmit: (data: { datetime: Date }) => void;
+  handleSubmit: (data: { datetime: Date; invalid: boolean }) => void;
 }
 
 export function InspectForm<Item extends InspectItem, Detail extends DetailItemProps>({
@@ -28,21 +29,11 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
   children,
 }: PropsWithChildren<Props<Item, Detail>>) {
   const datetime = new Date();
-  const [accepted, setAccepted] = useState<boolean | null>(null);
-  const [date, setDate] = useState(formatDate(datetime, "yyyy-MM-dd"));
-  const [time, setTime] = useState(formatDate(datetime, "HH:mm"));
-
-  const handleAcceptChange: (e: React.ChangeEvent<HTMLInputElement>) => void = e => {
-    setAccepted(!accepted);
-  };
-
-  const handleDateChange: OnChangeHandler = e => {
-    setDate(e.target.value);
-  };
-
-  const handleTimeChange: OnChangeHandler = e => {
-    setTime(e.target.value);
-  };
+  const accepted = useCheckboxState({ checked: false }, value =>
+    value !== true ? "Inspection must be digitally signed before submitting" : undefined
+  );
+  const date = useTextInputState({ value: formatDate(datetime, "yyyy-MM-dd") }, validateDate);
+  const time = useTextInputState({ value: formatDate(datetime, "HH:mm") }, validateTime);
 
   const handleCheckboxToggle = function (name: string) {
     return function (e: ChangeEvent<HTMLInputElement>) {
@@ -62,11 +53,9 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault();
     try {
-      const datetime = mapToDate({ date, time });
-      if (!accepted) {
-        throw new Error("Inspection must be accepted and digitally signed to submit");
-      }
-      handleSubmit({ datetime });
+      const invalid = hasErrors(accepted, date, time);
+      const datetime = mapToDate({ date: date.value, time: time.value });
+      handleSubmit({ datetime, invalid });
     } catch (error) {
       // TODO Display an error about an invalid date.
       console.error(error);
@@ -88,10 +77,10 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
         onSubmit={onSubmit}
       >
         <div>
-          <TextInput type="date" value={date} id="date-input" name="date" label="Date" onChange={handleDateChange} />
+          <TextInput type="date" id="date-input" name="date" label="Date" {...date} />
         </div>
         <div>
-          <TextInput type="time" value={time} id="time-input" name="time" label="Time" onChange={handleTimeChange} />
+          <TextInput type="time" id="time-input" name="time" label="Time" {...time} />
         </div>
         {/*
           KLUDGE: This seems like a hack, but its working.
@@ -121,11 +110,8 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
             <Checkbox
               id="accept-input"
               name="accept"
-              checked={accepted ?? false}
               label="I, John Hooks, accept and digitally sign this form"
-              onChange={handleAcceptChange}
-              invalid={accepted !== null && !accepted}
-              description={accepted !== null && !accepted ? "Signature is required to submit" : undefined}
+              {...accepted}
             />
           </div>
         </section>
@@ -140,4 +126,12 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
       </form>
     </>
   );
+}
+
+interface WithError {
+  error?: string;
+}
+
+function hasErrors(...args: WithError[]): boolean {
+  return args.find(item => typeof item.error === "string") !== undefined;
 }

@@ -8,6 +8,8 @@ import { useRouter } from "next/router";
 import { useCreateFrequentInspectMutation } from "generated/types";
 import { InspectForm, InspectItem } from "components/inspect/form";
 import { TextInput } from "components/form/text-input";
+import { useTextInputState } from "hooks/use-input-state";
+import { validateInteger } from "helpers/validators";
 
 import craneData from "data/crane-data.json";
 import craneInspectItemData from "data/daily-crane-inspection.json";
@@ -25,10 +27,10 @@ const NewInspect: NextPage = () => {
 
   const router = useRouter();
   const [create, { data, loading, error }] = useCreateFrequentInspectMutation();
-  const [hours, setHours] = useState("");
+  const hours = useTextInputState({ value: "" }, validateInteger);
   const [items, setItems] = useState(checkboxesMemo);
 
-  if (loading) return <p>Submitting...</p>;
+  if (data || loading) return <p>Submitting...</p>;
   if (error) return <p>Submission error! {error.message}</p>;
 
   const details = [
@@ -43,26 +45,26 @@ const NewInspect: NextPage = () => {
 
     // Allow the value to be blank
     if (value === "") {
-      setHours("");
-      return;
+      return hours.onChange(e);
     }
 
     // Only change the value if it looks like an integer
     if (/^\d+$/.test(value)) {
       const int = parseInt(e.target.value);
       if (!isNaN(int)) {
-        setHours(e.target.value);
-        return;
+        return hours.onChange(e);
       }
     }
   };
 
-  function handleSubmit({ datetime }: { datetime: Date }) {
+  function handleSubmit({ datetime, invalid }: { datetime: Date; invalid: boolean }) {
     try {
       const deficiencies = items.filter(item => !item.checked).map(item => item.name);
       const meta = deficiencies.length > 0 ? { deficiencies } : {};
-      const hoursParsed = parseInt(hours);
+      const hoursParsed = parseInt(hours.value);
       if (isNaN(hoursParsed)) throw new Error("Invalid hours value");
+      if (invalid) return;
+
       create({
         variables: {
           data: {

@@ -31,7 +31,7 @@ const InspectPage: NextPage = () => {
   if (!data?.documentById) throw new Error("Not found");
 
   const { datetime, hours, meta, miles, type } = data.documentById;
-  const title = type === DocType.InspectVehicleDaily ? "Daily Vehicle Inspection" : "Frequent Crane Inspection";
+  const title = type === DocType.InspectVehicleDaily ? "Driver-Vehicle Inspection Report" : "Frequent Crane Inspection";
   const deficiencies = (meta?.deficiencies as string[]) || [];
   const inspectItemData = type === DocType.InspectVehicleDaily ? vehicleInspectItemData : craneInspectItemDate;
   const items: InspectItem[] = inspectItemData.map(({ name, label }) => ({
