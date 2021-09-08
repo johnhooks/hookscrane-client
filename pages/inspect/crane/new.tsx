@@ -101,13 +101,7 @@ const NewInspect: NextPage = () => {
         <div className="max-w-xl mx-auto">
           <InspectForm details={details} inspectItems={items} setInspectItems={setItems} handleSubmit={handleSubmit}>
             <div className="sm:col-span-2">
-              <TextInput
-                value={hours.toString()}
-                id="hours-input"
-                name="hours"
-                label="Hours"
-                onChange={handleHoursChange}
-              />
+              <TextInput id="hours-input" name="hours" label="Hours" {...hours} onChange={handleHoursChange} />
             </div>
           </InspectForm>
         </div>
