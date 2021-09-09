@@ -20,7 +20,7 @@ module.exports = {
     "^lib/(.*)$": "<rootDir>/lib/$1",
     "^pages/(.*)$": "<rootDir>/pages/$1",
   },
-  setupFilesAfterEnv: ["<rootDir>/test/setup.js"],
+  setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
   testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/"],
   testEnvironment: "jsdom",
   transform: {
