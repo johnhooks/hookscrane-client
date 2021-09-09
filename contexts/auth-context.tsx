@@ -8,6 +8,7 @@ import type { Maybe } from "lib/interfaces";
 import { API_ENDPOINT } from "lib/constants";
 import { logger } from "lib/logger";
 import { AccessToken } from "lib/access-token";
+import { wait } from "lib/utils";
 import { forceTokenRefresh, silentTokenRefresh } from "lib/silent-token-refresh";
 import { MeQuery, MeDocument, User } from "generated/types";
 
@@ -75,7 +76,8 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
   }
 
   function onlineEventHandler() {
-    forceTokenRefresh()
+    wait(500)
+      .then(() => forceTokenRefresh())
       .then(token => {
         setAccessToken(token);
       })
