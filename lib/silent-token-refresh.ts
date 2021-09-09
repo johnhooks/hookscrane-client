@@ -32,6 +32,10 @@ export function forceTokenRefresh(): Promise<Maybe<AccessToken>> {
 }
 
 async function tokenRefresh(): Promise<Maybe<AccessToken>> {
+  if (!window.navigator.onLine) {
+    logger.error("[Auth] encountered attempt to refresh tokens when offline");
+    return null;
+  }
   if (status === Status.Fetching) {
     throw new Error("[Auth] encountered multiple attempts to refresh tokens");
   }
@@ -52,7 +56,7 @@ async function tokenRefresh(): Promise<Maybe<AccessToken>> {
         },
         body: JSON.stringify({}),
       },
-      timeout: 10_000,
+      timeout: 5_000,
     });
 
     if (response.status === 200) {

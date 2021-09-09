@@ -18,6 +18,7 @@ export async function fetchWithRetry({
   timeout,
 }: FetchWithRetryOptions): Promise<globalThis.Response> {
   let delay = 0;
+  let currentDelay = delay;
 
   logger.debug(`[Fetch] initializing fetch request`);
 
@@ -25,12 +26,12 @@ export async function fetchWithRetry({
     if (i !== 0) {
       delay = i === 1 ? initial : delay + delay; // the delay of each subsequent retry is increased exponentially
       delay = delay > max ? max : delay;
-      if (jitter) delay = delay * Math.random();
-      logger.debug(`[Fetch] delaying ${delay} ms before attempting the next fetch request`);
+      currentDelay = jitter ? delay * Math.random() : delay;
+      logger.debug(`[Fetch] delaying ${currentDelay} ms before attempting the next fetch request`);
     }
 
     try {
-      await wait(delay);
+      await wait(currentDelay);
       logger.debug(`[Fetch] initializing fetch request attempt ${i + 1}`);
       const response = await fetchWithTimeout({ input, init, timeout });
       return response;

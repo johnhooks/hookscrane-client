@@ -16,7 +16,7 @@ export function wait(ms: number): Promise<void> {
 export async function withLock<T>(key: string, cb: () => Promise<T>, attempts = 20): Promise<T> {
   for (let i = 0; i < attempts; i++) {
     const lock = window.localStorage.getItem(key);
-    logger.debug("[Lock] attempting to acquire");
+    logger.debug(`[Lock] attempting to acquire ${key}`);
     if (!lock || lock === "0") {
       // Using a random id to confirm that the lock was acquired by this tab.
       const id = randomId();
@@ -26,14 +26,14 @@ export async function withLock<T>(key: string, cb: () => Promise<T>, attempts = 
       // attempt to request refresh the tokens.
       await wait(100);
       if (window.localStorage.getItem(key) === id) {
-        logger.debug("[Lock] acquired");
+        logger.debug(`[Lock] acquired ${key}`);
         const result = await cb();
         window.localStorage.setItem(key, "0");
-        logger.debug("[Lock] released");
+        logger.debug(`[Lock] released ${key}`);
         return result;
       }
     }
-    logger.debug(`[Lock] failed to acquire, attempt ${i + 1}`);
+    logger.debug(`[Lock] failed to acquire ${key}, attempt ${i + 1}`);
     await wait(2000 * Math.random());
   }
   throw new Error(`[Lock] unable to acquire key: ${key}`);
