@@ -63,11 +63,11 @@ export const TextInput: FunctionComponent<Props> = function TextInput({
           </div>
         )}
       </div>
-      <section id={`${id}-description`}>
+      <section id={`${id}-description`} className="mt-2 flex flex-col gap-y-2 text-sm">
         {description && <p className="text-gray-500">{description}</p>}
         {invalid && (
           <p id={`${id}-error`} className="text-red-600">
-            {error}
+            {label} {error}
           </p>
         )}
       </section>
