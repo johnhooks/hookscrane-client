@@ -61,6 +61,7 @@ export const tokenMachine = createMachine<TokenContext, TokenEvent, TokenTypesta
               token: (_, event) => event.data,
             }),
           },
+          // Should it transition to monitoring?
           onError: "idle",
         },
         on: {
@@ -73,8 +74,13 @@ export const tokenMachine = createMachine<TokenContext, TokenEvent, TokenTypesta
           src: "checkTokens",
         },
         on: {
-          FETCH: "loading",
           CANCEL: "idle",
+          FETCH: "loading",
+          LOGIN: {
+            actions: assign({
+              token: (_, event) => event.token,
+            }),
+          },
         },
       },
     },
@@ -94,7 +100,16 @@ export const tokenMachine = createMachine<TokenContext, TokenEvent, TokenTypesta
       },
     },
     services: {
-      fetchTokens: (_context, _event) => withLock(TOKEN_REFRESH_LOCK_KEY, fetchTokens),
+      // TODO replace the inline promise invoke with this service
+      fetchTokens: (_context, _event) => (callback, _onReceive) => {
+        withLock(TOKEN_REFRESH_LOCK_KEY, fetchTokens)
+          .then(token => {
+            callback({ type: "LOGIN", token });
+          })
+          .catch(_error => {
+            callback({ type: "CANCEL" });
+          });
+      },
       checkTokens: (context, _event) => (callback, _onReceive) => {
         const id = setInterval(() => {
           const token = context.token;

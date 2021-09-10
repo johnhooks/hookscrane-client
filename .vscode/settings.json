@@ -37,11 +37,12 @@
     "editor.formatOnSave": false
   },
   "cSpell.words": [
-    "Ponyfill",
     "dev",
     "hookscrane",
     "mimetype",
+    "Ponyfill",
     "tsbuildinfo",
+    "Typestate",
     "webp"
   ],
   "cSpell.ignorePaths": [

@@ -5,7 +5,6 @@ import { ApolloProvider } from "@apollo/client";
 import { useMachine } from "@xstate/react";
 
 import { AuthProvider } from "contexts/auth-context";
-import type { Maybe } from "lib/interfaces";
 import type { AccessToken } from "lib/access-token";
 import { useApollo } from "lib/apollo-client";
 import { tokenMachine } from "lib/token-machine";
@@ -16,6 +15,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   const apolloClient = useApollo(pageProps, state.context.token);
 
   useEffect(() => {
+    // Initialize the token machine
     send("FETCH");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
