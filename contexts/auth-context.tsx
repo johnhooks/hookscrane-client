@@ -1,6 +1,4 @@
-import type { Dispatch, SetStateAction } from "react";
-
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useApolloClient } from "@apollo/client";
 
 import type { Maybe } from "lib/interfaces";
@@ -8,8 +6,6 @@ import type { Maybe } from "lib/interfaces";
 import { API_ENDPOINT } from "lib/constants";
 import { logger } from "lib/logger";
 import { AccessToken } from "lib/access-token";
-import { wait } from "lib/utils";
-import { forceTokenRefresh, silentTokenRefresh } from "lib/silent-token-refresh";
 import { MeQuery, MeDocument, User } from "generated/types";
 
 /**
@@ -20,7 +16,7 @@ import { MeQuery, MeDocument, User } from "generated/types";
 
 type Props = {
   accessToken: Maybe<AccessToken>;
-  setAccessToken: Dispatch<SetStateAction<Maybe<AccessToken>>>;
+  onLogin: (token: AccessToken) => void;
   children: React.ReactNode;
 };
 
@@ -39,7 +35,7 @@ function nope(...args: any[]): Promise<void> {
 const AuthContext: React.Context<Context> = createContext<Context>({ user: null, login: nope, logout: nope });
 export const useAuth = (): Context => useContext(AuthContext);
 
-export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setAccessToken, children }) => {
+export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, onLogin, children }) => {
   const client = useApolloClient();
   let data: Maybe<MeQuery> = null;
 
@@ -62,9 +58,6 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
   const [user, setUser] = useState<Maybe<User>>(data?.me || null); // Set user if provided through SSR
 
   function clearSession() {
-    setAccessToken(null);
-    setUser(null);
-
     // https://www.apollographql.com/docs/react/networking/authentication/#reset-store-on-logout
     // The most straightforward way to ensure that the UI and store state reflects the current user's
     // permissions is to call client.resetStore() after your login or logout process has completed.
@@ -72,18 +65,6 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     // want the store to be cleared and don't want to refetch active queries, use client.clearStore()
     // instead. Another option is to reload the page, which will have a similar effect.
     location.reload();
-    console.log("[Auth] session data cleared");
-  }
-
-  function onlineEventHandler() {
-    wait(500)
-      .then(() => forceTokenRefresh())
-      .then(token => {
-        setAccessToken(token);
-      })
-      .catch(error => {
-        throw error;
-      });
   }
 
   function storageEventHandler(event: StorageEvent): void {
@@ -96,21 +77,13 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
 
   useEffect(() => {
     logger.debug("[Util] initializing window event listeners");
-    window.addEventListener("online", onlineEventHandler);
     window.addEventListener("storage", storageEventHandler);
     return function cleanup() {
       logger.debug("[Util cleaning up window event listeners");
-      window.removeEventListener("online", onlineEventHandler);
       window.removeEventListener("storage", storageEventHandler);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    // Initialize an interval to refresh the access token.
-    const cleanup = silentTokenRefresh(accessToken, setAccessToken);
-    if (cleanup) return cleanup;
-  }, [accessToken, setAccessToken]);
 
   useEffect(() => {
     if (!accessToken || user) return;
@@ -147,7 +120,7 @@ export const AuthProvider: React.FunctionComponent<Props> = ({ accessToken, setA
     const token = AccessToken.parse(body);
 
     if (token) {
-      setAccessToken(token);
+      onLogin(token);
       logger.debug("[Auth] login successful");
     } else {
       throw new Error("[Auth] login attempt failed");

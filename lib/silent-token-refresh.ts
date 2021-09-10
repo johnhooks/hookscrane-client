@@ -31,50 +31,40 @@ export function forceTokenRefresh(): Promise<Maybe<AccessToken>> {
   }
 }
 
-async function tokenRefresh(): Promise<Maybe<AccessToken>> {
+async function tokenRefresh(): Promise<AccessToken> {
   if (!window.navigator.onLine) {
-    logger.error("[Auth] encountered attempt to refresh tokens when offline");
-    return null;
+    throw new Error("[Auth] encountered attempt to refresh tokens when offline");
   }
   if (status === Status.Fetching) {
     throw new Error("[Auth] encountered multiple attempts to refresh tokens");
   }
-  try {
-    status = Status.Fetching;
-    logger.debug("[Auth] initiating request to refresh tokens");
 
-    const response = await fetchWithRetry({
-      attempts: 20,
-      delay: { initial: 100, max: 60_000 },
-      input: `${ENDPOINT}/refresh`,
-      init: {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-        },
-        body: JSON.stringify({}),
-      },
-      timeout: 5_000,
-    });
+  status = Status.Fetching;
+  logger.debug("[Auth] initiating request to refresh tokens");
 
-    if (response.status === 200) {
-      const raw = await response.text();
-      const token = AccessToken.parse(raw);
-      if (token) {
-        status = Status.Ready;
-        logger.debug("[Auth] request to refresh tokens successful");
-        return token;
-      } else {
-        return _error("[Auth] request to refresh tokens failed");
-      }
+  const response = await fetch(`${ENDPOINT}/refresh`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache",
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (response.status === 200) {
+    const raw = await response.text();
+    const token = AccessToken.parse(raw);
+    if (token) {
+      status = Status.Ready;
+      logger.debug("[Auth] request to refresh tokens successful");
+      return token;
     } else {
-      const { status, statusText } = response;
-      return _error("[Auth] request to refresh tokens failed", { status, statusText });
+      throw new Error("[Auth] request to refresh tokens failed");
     }
-  } catch (e) {
-    return _error("[Auth] request to refresh tokens failed", e);
+  } else {
+    const { status, statusText } = response;
+    throw new Error(`[Auth] request to refresh tokens failed ${status} ${statusText}`);
   }
 }
 
