@@ -86,13 +86,6 @@ export const tokenMachine = createMachine<TokenContext, TokenEvent, TokenTypesta
     },
   },
   {
-    actions: {
-      checkShouldRefresh: (context: TokenContext, _event: any) => {
-        const { token } = context;
-        if (token === null || token.expiresSoon()) return validRefreshTokenExpiresCookie();
-        return false;
-      },
-    },
     guards: {
       shouldAttemptRefresh: ({ token }, _event) => {
         if (token === null || token.expiresSoon()) return validRefreshTokenExpiresCookie();
