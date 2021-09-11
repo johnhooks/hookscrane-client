@@ -26,6 +26,7 @@ const NewVehicleInspect: NextPage = () => {
   const router = useRouter();
   const [create, { data, loading, error }] = useCreateDailyVehicleInspectMutation();
   const miles = useTextInputState({ value: "" }, validateInteger);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [items, setItems] = useState(checkboxesMemo);
 
   if (data || loading) return <p>Submitting...</p>;
@@ -38,29 +39,14 @@ const NewVehicleInspect: NextPage = () => {
     { name: "owner-id", label: "Owner ID Number", value: craneData.id },
   ];
 
-  const handleMilesChange: (e: ChangeEvent<HTMLInputElement>) => void = e => {
-    const value = e.target.value;
-
-    // Allow the value to be blank
-    if (value === "") {
-      return miles.onChange(e);
-    }
-
-    // Only change the value if it looks like an integer
-    if (/^\d+$/.test(value)) {
-      const int = parseInt(e.target.value);
-      if (!isNaN(int)) {
-        return miles.onChange(e);
-      }
-    }
-  };
-
   function handleSubmit({ datetime, invalid }: { datetime: Date; invalid: boolean }) {
+    setHasSubmitted(true);
+    if (!miles.validate() || invalid) return;
+
     const deficiencies = items.filter(item => !item.checked).map(item => item.name);
     const meta = deficiencies.length > 0 ? { deficiencies } : {};
     const milesParsed = parseInt(miles.value);
     if (isNaN(milesParsed)) throw new Error("Invalid miles value");
-    if (invalid) return;
 
     create({
       variables: {
@@ -93,9 +79,21 @@ const NewVehicleInspect: NextPage = () => {
       </header>
       <div className="mt-4 sm:mt-6 overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <InspectForm details={details} inspectItems={items} setInspectItems={setItems} handleSubmit={handleSubmit}>
+          <InspectForm
+            details={details}
+            inspectItems={items}
+            hasSubmitted={hasSubmitted}
+            setInspectItems={setItems}
+            handleSubmit={handleSubmit}
+          >
             <div className="sm:col-span-2">
-              <TextInput id="miles-input" name="miles" label="Miles" {...miles} onChange={handleMilesChange} />
+              <TextInput
+                id="miles-input"
+                name="miles"
+                label="Miles"
+                {...miles}
+                showErrors={hasSubmitted || miles.hasBlurred}
+              />
             </div>
           </InspectForm>
         </div>

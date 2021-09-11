@@ -2,20 +2,20 @@ import type { FunctionComponent, DetailedHTMLProps, InputHTMLAttributes } from "
 
 import { ExclamationCircleIcon } from "@heroicons/react/solid";
 
-export interface Props {
+import type { UseTextInputState } from "hooks/use-input-state";
+
+interface TextInputProps {
   id: string;
   name: string;
   label: string;
-  value: string;
-  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: "text" | "email" | "number" | "password" | "date" | "time";
   placeholder?: string | undefined;
   className?: string | undefined;
   description?: string | undefined;
-  error?: string;
   showErrors?: boolean;
 }
+
+export type Props = UseTextInputState & TextInputProps;
 
 const baseClassName = "block w-full rounded-md sm:text-sm shadow-sm";
 const validClassName = "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500";
@@ -34,7 +34,7 @@ export const TextInput: FunctionComponent<Props> = function TextInput({
   error,
   showErrors,
 }) {
-  const invalid = showErrors === true && typeof error === "string";
+  const invalid = Boolean(showErrors && error);
   const className = baseClassName + " " + (invalid ? invalidClassName : validClassName);
 
   const inputProps: DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> = {

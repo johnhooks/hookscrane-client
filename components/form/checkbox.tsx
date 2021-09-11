@@ -1,18 +1,28 @@
 import type { PropsWithChildren } from "react";
 
-export interface Props {
+import type { UseCheckboxState } from "hooks/use-checkbox-state";
+
+interface CheckboxProps {
   id: string;
   name: string;
   label: string;
-  checked: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   description?: string;
-  error?: string;
-  note?: string;
+  showErrors?: boolean;
 }
 
-export function Checkbox({ id, name, label, checked, onChange, description, error }: PropsWithChildren<Props>) {
-  const invalid = typeof error !== "undefined";
+export type Props = Omit<UseCheckboxState, "error"> & CheckboxProps & { error?: string | null };
+
+export function Checkbox({
+  id,
+  name,
+  label,
+  checked,
+  onChange,
+  description,
+  error,
+  showErrors,
+}: PropsWithChildren<Props>) {
+  const invalid = Boolean(showErrors && error);
 
   return (
     <div className="relative flex items-start">
@@ -34,7 +44,7 @@ export function Checkbox({ id, name, label, checked, onChange, description, erro
         </label>
         <section id={`${id}-description`} className="mt-2 flex flex-col gap-y-2">
           {description && <p className="text-gray-500">{description}</p>}
-          {error && (
+          {invalid && (
             <p id={`${id}-error`} className="text-red-600">
               {error}
             </p>

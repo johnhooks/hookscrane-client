@@ -4,3 +4,5 @@ export interface AccessTokenPayload {
   token: string;
   tokenExpires: string;
 }
+
+export type Nullish = null | undefined;

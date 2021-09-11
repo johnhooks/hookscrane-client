@@ -28,6 +28,7 @@ const NewInspect: NextPage = () => {
   const router = useRouter();
   const [create, { data, loading, error }] = useCreateFrequentInspectMutation();
   const hours = useTextInputState({ value: "" }, validateInteger);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [items, setItems] = useState(checkboxesMemo);
 
   if (data || loading) return <p>Submitting...</p>;
@@ -40,50 +41,32 @@ const NewInspect: NextPage = () => {
     { name: "owner-id", label: "Owner ID Number", value: craneData.id },
   ];
 
-  const handleHoursChange: (e: ChangeEvent<HTMLInputElement>) => void = e => {
-    const value = e.target.value;
-
-    // Allow the value to be blank
-    if (value === "") {
-      return hours.onChange(e);
-    }
-
-    // Only change the value if it looks like an integer
-    if (/^\d+$/.test(value)) {
-      const int = parseInt(e.target.value);
-      if (!isNaN(int)) {
-        return hours.onChange(e);
-      }
-    }
-  };
-
   function handleSubmit({ datetime, invalid }: { datetime: Date; invalid: boolean }) {
-    try {
-      const deficiencies = items.filter(item => !item.checked).map(item => item.name);
-      const meta = deficiencies.length > 0 ? { deficiencies } : {};
-      const hoursParsed = parseInt(hours.value);
-      if (isNaN(hoursParsed)) throw new Error("Invalid hours value");
-      if (invalid) return;
+    setHasSubmitted(true);
+    console.log(!hours.validate(), invalid);
+    if (!hours.validate() || invalid) return;
 
-      create({
-        variables: {
-          data: {
-            datetime,
-            hours: hoursParsed,
-            meta,
-          },
+    const deficiencies = items.filter(item => !item.checked).map(item => item.name);
+    const meta = deficiencies.length > 0 ? { deficiencies } : {};
+    const hoursParsed = parseInt(hours.value);
+    if (isNaN(hoursParsed)) throw new Error("Invalid hours value");
+
+    create({
+      variables: {
+        data: {
+          datetime,
+          hours: hoursParsed,
+          meta,
         },
-      }).then(result => {
-        const inspectId = result.data?.createFrequentInspect?.id;
-        if (inspectId) {
-          router.push(`/inspect/${inspectId}`);
-          return;
-        }
-        throw new Error("Received unexpected input during daily inspection form submission");
-      });
-    } catch (error) {
-      console.log(error);
-    }
+      },
+    }).then(result => {
+      const inspectId = result.data?.createFrequentInspect?.id;
+      if (inspectId) {
+        router.push(`/inspect/${inspectId}`);
+        return;
+      }
+      throw new Error("Received unexpected input during daily inspection form submission");
+    });
   }
 
   return (
@@ -99,9 +82,21 @@ const NewInspect: NextPage = () => {
       </header>
       <div className="mt-4 sm:mt-6overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
-          <InspectForm details={details} inspectItems={items} setInspectItems={setItems} handleSubmit={handleSubmit}>
+          <InspectForm
+            details={details}
+            inspectItems={items}
+            hasSubmitted={hasSubmitted}
+            setInspectItems={setItems}
+            handleSubmit={handleSubmit}
+          >
             <div className="sm:col-span-2">
-              <TextInput id="hours-input" name="hours" label="Hours" {...hours} onChange={handleHoursChange} />
+              <TextInput
+                id="hours-input"
+                name="hours"
+                label="Hours"
+                {...hours}
+                showErrors={hasSubmitted || hours.hasBlurred}
+              />
             </div>
           </InspectForm>
         </div>

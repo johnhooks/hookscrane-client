@@ -8,7 +8,8 @@
   },
   "references": [
     { "path": "../contexts" },
-    { "path": "../helpers" }
+    { "path": "../helpers" },
+    { "path": "../hooks" }
   ],
   "include": ["**/*"]
 }

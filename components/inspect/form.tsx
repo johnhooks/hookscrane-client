@@ -1,9 +1,8 @@
 import type { ChangeEvent, FormEventHandler, PropsWithChildren, SetStateAction } from "react";
-import { useState } from "react";
 import { format as formatDate } from "date-fns";
 
 import type { Props as CheckboxProps } from "components/form/checkbox";
-import { TextInput, Props as TextInputProps } from "components/form/text-input";
+import { TextInput } from "components/form/text-input";
 import { Checklist } from "components/form/checklist";
 import { Checkbox } from "components/form/checkbox";
 import { DetailList, DetailItemProps } from "components/detail-list";
@@ -12,11 +11,12 @@ import { useTextInputState } from "hooks/use-input-state";
 import { validateDate, validateTime } from "helpers/validators";
 import { mapToDate } from "lib/date";
 
-export type InspectItem = Omit<CheckboxProps, "onChange">;
+export type InspectItem = Omit<CheckboxProps, "error" | "onChange">;
 
 interface Props<Item extends InspectItem, Detail extends DetailItemProps> {
   details: Detail[];
   inspectItems: Item[];
+  hasSubmitted: boolean;
   setInspectItems: (value: SetStateAction<Item[]>) => void;
   handleSubmit: (data: { datetime: Date; invalid: boolean }) => void;
 }
@@ -24,6 +24,7 @@ interface Props<Item extends InspectItem, Detail extends DetailItemProps> {
 export function InspectForm<Item extends InspectItem, Detail extends DetailItemProps>({
   details,
   inspectItems,
+  hasSubmitted,
   setInspectItems,
   handleSubmit,
   children,
@@ -53,7 +54,7 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault();
     try {
-      const invalid = hasErrors(accepted, date, time);
+      const invalid = !validate(accepted, date, time);
       const datetime = mapToDate({ date: date.value, time: time.value });
       handleSubmit({ datetime, invalid });
     } catch (error) {
@@ -77,10 +78,24 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
         onSubmit={onSubmit}
       >
         <div>
-          <TextInput type="date" id="date-input" name="date" label="Date" {...date} />
+          <TextInput
+            type="date"
+            id="date-input"
+            name="date"
+            label="Date"
+            {...date}
+            showErrors={hasSubmitted || date.hasBlurred}
+          />
         </div>
         <div>
-          <TextInput type="time" id="time-input" name="time" label="Time" {...time} />
+          <TextInput
+            type="time"
+            id="time-input"
+            name="time"
+            label="Time"
+            {...time}
+            showErrors={hasSubmitted || time.hasBlurred}
+          />
         </div>
         {/*
           KLUDGE: This seems like a hack, but its working.
@@ -112,6 +127,7 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
               name="accept"
               label="I, John Hooks, accept and digitally sign this form"
               {...accepted}
+              showErrors={hasSubmitted}
             />
           </div>
         </section>
@@ -128,10 +144,13 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
   );
 }
 
-interface WithError {
-  error?: string;
+interface WithValidator {
+  validate?: (() => boolean) | null;
 }
 
-function hasErrors(...args: WithError[]): boolean {
-  return args.find(item => typeof item.error === "string") !== undefined;
+function validate(...args: WithValidator[]): boolean {
+  for (const { validate } of args) {
+    if (!(validate && validate())) return false;
+  }
+  return true;
 }
