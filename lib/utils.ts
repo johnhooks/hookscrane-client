@@ -36,7 +36,7 @@ export async function withLock<T>(key: string, cb: () => Promise<T>): Promise<T>
   throw new Error(`[Lock] unable to acquire lock key: ${key}`);
 }
 
-function randomId(): string {
+export function randomId(): string {
   const uint32 = window.crypto.getRandomValues(new Uint32Array(1))[0];
   return uint32.toString(16);
 }

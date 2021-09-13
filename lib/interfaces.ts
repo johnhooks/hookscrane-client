@@ -5,4 +5,11 @@ export interface AccessTokenPayload {
   tokenExpires: string;
 }
 
+export interface Message {
+  body?: string;
+  heading: string;
+  status: "error" | "info" | "success" | "warning";
+  key: string;
+}
+
 export type Nullish = null | undefined;
