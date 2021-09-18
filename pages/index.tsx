@@ -1,7 +1,11 @@
 import type { NextPage, GetStaticProps } from "next";
 import Head from "next/head";
 
+import { useSnackbar } from "contexts/snackbar-context";
+
 const HomePage: NextPage = () => {
+  const { pushSnack } = useSnackbar();
+
   return (
     <>
       <Head>
@@ -20,6 +24,13 @@ const HomePage: NextPage = () => {
             <p className="text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
               Detailed record keeping helps ensure safety and functionality of equipment.
             </p>
+            <button
+              type="button"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              onClick={() => pushSnack({ heading: "Hello World", status: "info" })}
+            >
+              Button text
+            </button>
           </div>
         </main>
       </div>

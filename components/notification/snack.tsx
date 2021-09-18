@@ -1,6 +1,5 @@
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import { Transition } from "@headlessui/react";
-import { CheckCircleIcon, ExclamationIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/outline";
 import { XIcon } from "@heroicons/react/solid";
 
 import type { Message } from "lib/interfaces";

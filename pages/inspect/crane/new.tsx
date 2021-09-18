@@ -1,20 +1,24 @@
 import type { NextPage } from "next";
-import type { ChangeEvent } from "react";
-
+import type { FormEventHandler } from "react";
 import { useMemo, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { format as formatDate } from "date-fns";
 
 import { useCreateFrequentInspectMutation } from "generated/types";
 import { InspectForm, InspectItem } from "components/inspect/form";
 import { TextInput } from "components/form/text-input";
-import { useTextInputState } from "hooks/use-input-state";
-import { validateInteger } from "helpers/validators";
+import { Alert } from "components/notification/alert";
+import { useFormState, initialTextInputState, initialCheckboxState } from "hooks/use-form-state";
+import { validateDate, validateInteger, validateTime } from "helpers/validators";
+import { mapToDate } from "lib/date";
 
 import craneData from "data/crane-data.json";
 import craneInspectItemData from "data/daily-crane-inspection.json";
 
 const NewInspect: NextPage = () => {
+  const datetime = useMemo(() => new Date(), []);
+
   const checkboxesMemo: InspectItem[] = useMemo(() => {
     return craneInspectItemData.map(({ name, label, description }) => ({
       id: `${name}-input`,
@@ -27,12 +31,31 @@ const NewInspect: NextPage = () => {
 
   const router = useRouter();
   const [create, { data, loading, error }] = useCreateFrequentInspectMutation();
-  const hours = useTextInputState({ value: "" }, validateInteger);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [items, setItems] = useState(checkboxesMemo);
 
-  if (data || loading) return <p>Submitting...</p>;
-  if (error) return <p>Submission error! {error.message}</p>;
+  const [state, dispatch] = useFormState({
+    inputs: {
+      date: initialTextInputState({ value: formatDate(datetime, "yyyy-MM-dd"), validate: validateDate }),
+      hours: initialTextInputState({ validate: validateInteger }),
+      signature: initialCheckboxState({
+        validate: function (value) {
+          return value !== true ? "Inspection must be digitally signed before submitting" : null;
+        },
+      }),
+      time: initialTextInputState({ value: formatDate(datetime, "HH:mm"), validate: validateTime }),
+    },
+  });
+
+  if (data || loading) return <div className="text-center mt-6 text-xl">Submitting...</div>;
+  if (error) return <div className="text-center mt-6 text-xl">Submission error! {error.message}</div>;
+
+  const errors = (Object.keys(state.inputs) as Array<keyof typeof state.inputs>)
+    .map(name => ({ name, input: state.inputs[name] }))
+    .filter(({ input }) => typeof input.error === "string")
+    .map(({ name, input: { error } }) => ({ name, error })) as Array<{
+    name: keyof typeof state.inputs;
+    error: string;
+  }>;
 
   const details = [
     { name: "vehicle-make", label: "Make", value: craneData.make },
@@ -41,33 +64,47 @@ const NewInspect: NextPage = () => {
     { name: "owner-id", label: "Owner ID Number", value: craneData.id },
   ];
 
-  function handleSubmit({ datetime, invalid }: { datetime: Date; invalid: boolean }) {
-    setHasSubmitted(true);
-    console.log(!hours.validate(), invalid);
-    if (!hours.validate() || invalid) return;
+  const handleSubmit: FormEventHandler<HTMLFormElement> = e => {
+    e.preventDefault();
+    if (!state.hasSubmitted) {
+      return dispatch({ type: "submit" });
+    }
 
-    const deficiencies = items.filter(item => !item.checked).map(item => item.name);
-    const meta = deficiencies.length > 0 ? { deficiencies } : {};
-    const hoursParsed = parseInt(hours.value);
-    if (isNaN(hoursParsed)) throw new Error("Invalid hours value");
+    const errors = (Object.keys(state.inputs) as Array<keyof typeof state.inputs>)
+      .map(name => ({ name, input: state.inputs[name] }))
+      .filter(({ input }) => typeof input.error === "string")
+      .map(({ name, input: { error } }) => ({ name, error })) as Array<{
+      name: keyof typeof state.inputs;
+      error: string;
+    }>;
 
-    create({
-      variables: {
-        data: {
-          datetime,
-          hours: hoursParsed,
-          meta,
+    if (errors.length === 0) {
+      const deficiencies = items.filter(item => !item.checked).map(item => item.name);
+      const meta = deficiencies.length > 0 ? { deficiencies } : {};
+      const hoursParsed = parseInt(state.inputs.hours.value);
+      if (isNaN(hoursParsed)) throw new Error("Invalid hours value");
+      const datetime = mapToDate({ date: state.inputs.date.value, time: state.inputs.time.value });
+
+      create({
+        variables: {
+          data: {
+            datetime,
+            hours: hoursParsed,
+            meta,
+          },
         },
-      },
-    }).then(result => {
-      const inspectId = result.data?.createFrequentInspect?.id;
-      if (inspectId) {
-        router.push(`/inspect/${inspectId}`);
-        return;
-      }
-      throw new Error("Received unexpected input during daily inspection form submission");
-    });
-  }
+      }).then(result => {
+        const inspectId = result.data?.createFrequentInspect?.id;
+        if (inspectId) {
+          router.push(`/inspect/${inspectId}`);
+          return;
+        }
+        throw new Error("Received unexpected input during daily inspection form submission");
+      });
+    }
+
+    dispatch({ type: "submit" });
+  };
 
   return (
     <>
@@ -80,22 +117,48 @@ const NewInspect: NextPage = () => {
           <h1 className="text-3xl font-bold text-gray-900">Daily Crane Inspection</h1>
         </div>
       </header>
-      <div className="mt-4 sm:mt-6overflow-hidden px-4 sm:px-6 lg:px-8">
+      {state.hasSubmitted && errors.length > 0 && (
+        <div className="mt-4 sm:mt-6  px-4 sm:px-6 lg:px-8">
+          <div className="max-w-xl mx-auto">
+            <Alert message={{ heading: "There are errors on this form", status: "warning" }}>
+              <ul role="list" className="list-disc pl-5 space-y-1">
+                {errors.map(error => (
+                  <li key={error.name}>
+                    {error.name} {error.error}
+                  </li>
+                ))}
+              </ul>
+            </Alert>
+          </div>
+        </div>
+      )}
+      <div className="mt-4 sm:mt-6 overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="max-w-xl mx-auto">
           <InspectForm
             details={details}
+            dispatch={dispatch}
+            inputs={state.inputs}
             inspectItems={items}
-            hasSubmitted={hasSubmitted}
+            hasSubmitted={state.hasSubmitted}
             setInspectItems={setItems}
-            handleSubmit={handleSubmit}
+            onSubmit={handleSubmit}
           >
             <div className="sm:col-span-2">
               <TextInput
                 id="hours-input"
                 name="hours"
                 label="Hours"
-                {...hours}
-                showErrors={hasSubmitted || hours.hasBlurred}
+                value={state.inputs.hours.value}
+                error={state.inputs.hours.error}
+                onBlur={e => {
+                  dispatch({ type: "input:blur", name: "hours" });
+                }}
+                onChange={e => {
+                  e.preventDefault();
+                  const value = e.target.value;
+                  dispatch({ type: "input:update", name: "hours", value });
+                }}
+                showErrors={state.hasSubmitted || state.inputs.hours.hasBlurred}
               />
             </div>
           </InspectForm>

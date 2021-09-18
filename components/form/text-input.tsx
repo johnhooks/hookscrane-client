@@ -1,38 +1,39 @@
-import type { FunctionComponent, DetailedHTMLProps, InputHTMLAttributes } from "react";
+import type { ChangeEvent, FocusEvent, FunctionComponent, DetailedHTMLProps, InputHTMLAttributes } from "react";
 
 import { ExclamationCircleIcon } from "@heroicons/react/solid";
 
-import type { UseTextInputState } from "hooks/use-input-state";
+import type { Nullish } from "lib/interfaces";
 
-interface TextInputProps {
-  id: string;
-  name: string;
-  label: string;
-  type?: "text" | "email" | "number" | "password" | "date" | "time";
-  placeholder?: string | undefined;
-  className?: string | undefined;
+interface Props {
   description?: string | undefined;
+  error?: string | Nullish;
+  id: string;
+  label: string;
+  name: string;
+  onBlur: (e: FocusEvent<HTMLInputElement>) => void;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string | undefined;
+  value: string;
   showErrors?: boolean;
+  type?: "text" | "email" | "number" | "password" | "date" | "time";
 }
-
-export type Props = UseTextInputState & TextInputProps;
 
 const baseClassName = "block w-full rounded-md sm:text-sm shadow-sm";
 const validClassName = "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500";
 const invalidClassName = "pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500"; //prettier-ignore
 
 export const TextInput: FunctionComponent<Props> = function TextInput({
-  id,
-  name,
-  label,
-  value,
-  onBlur,
-  onChange,
-  type = "text",
-  placeholder,
   description,
   error,
+  id,
+  label,
+  name,
+  onBlur,
+  onChange,
+  placeholder,
+  value,
   showErrors,
+  type = "text",
 }) {
   const invalid = Boolean(showErrors && error);
   const className = baseClassName + " " + (invalid ? invalidClassName : validClassName);

@@ -1,44 +1,45 @@
-import type { ChangeEvent, FormEventHandler, PropsWithChildren, SetStateAction } from "react";
-import { format as formatDate } from "date-fns";
+import type { Dispatch, ChangeEvent, FormEventHandler, PropsWithChildren, SetStateAction } from "react";
 
 import type { Props as CheckboxProps } from "components/form/checkbox";
+import type { Action as FormAction, CheckboxState, TextInputState } from "lib/interfaces/form";
 import { TextInput } from "components/form/text-input";
 import { Checklist } from "components/form/checklist";
 import { Checkbox } from "components/form/checkbox";
 import { DetailList, DetailItemProps } from "components/detail-list";
-import { useCheckboxState } from "hooks/use-checkbox-state";
-import { useTextInputState } from "hooks/use-input-state";
-import { validateDate, validateTime } from "helpers/validators";
-import { mapToDate } from "lib/date";
 
 export type InspectItem = Omit<CheckboxProps, "error" | "onChange">;
 
-interface Props<Item extends InspectItem, Detail extends DetailItemProps> {
+type InputsProp = {
+  date: TextInputState;
+  signature: CheckboxState;
+  time: TextInputState;
+};
+
+type Action = FormAction<InputsProp>;
+
+interface Props<Detail extends DetailItemProps, Inputs extends InputsProp, Item extends InspectItem> {
   details: Detail[];
-  inspectItems: Item[];
+  dispatch: Dispatch<Action>;
   hasSubmitted: boolean;
+  inputs: Inputs;
+  inspectItems: Item[];
+  onSubmit: FormEventHandler<HTMLFormElement>;
   setInspectItems: (value: SetStateAction<Item[]>) => void;
-  handleSubmit: (data: { datetime: Date; invalid: boolean }) => void;
 }
 
-export function InspectForm<Item extends InspectItem, Detail extends DetailItemProps>({
-  details,
-  inspectItems,
-  hasSubmitted,
-  setInspectItems,
-  handleSubmit,
+export function InspectForm<Detail extends DetailItemProps, Inputs extends InputsProp, Item extends InspectItem>({
   children,
-}: PropsWithChildren<Props<Item, Detail>>) {
-  const datetime = new Date();
-  const accepted = useCheckboxState({ checked: false }, value =>
-    value !== true ? "Inspection must be digitally signed before submitting" : undefined
-  );
-  const date = useTextInputState({ value: formatDate(datetime, "yyyy-MM-dd") }, validateDate);
-  const time = useTextInputState({ value: formatDate(datetime, "HH:mm") }, validateTime);
-
+  details,
+  dispatch,
+  hasSubmitted,
+  inputs,
+  inspectItems,
+  onSubmit,
+  setInspectItems,
+}: PropsWithChildren<Props<Detail, Inputs, Item>>) {
   const handleCheckboxToggle = function (name: string) {
     return function (e: ChangeEvent<HTMLInputElement>) {
-      e.preventDefault();
+      // e.preventDefault(); // Can't be used or the checkbox won't display the check mark
       setInspectItems(prevState => {
         const item = prevState.find(item => item.name === name);
         if (item) {
@@ -51,17 +52,10 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
     };
   };
 
-  const onSubmit: FormEventHandler<HTMLFormElement> = e => {
-    e.preventDefault();
-    try {
-      const invalid = !validate(accepted, date, time);
-      const datetime = mapToDate({ date: date.value, time: time.value });
-      handleSubmit({ datetime, invalid });
-    } catch (error) {
-      // TODO Display an error about an invalid date.
-      console.error(error);
-    }
-  };
+  function handleSignatureToggle(e: ChangeEvent<HTMLInputElement>) {
+    // e.preventDefault(); // Can't be used or the checkbox won't display the check mark
+    dispatch({ type: "checkbox:toggle", name: "signature" });
+  }
 
   return (
     <>
@@ -79,22 +73,40 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
       >
         <div>
           <TextInput
-            type="date"
+            error={inputs.date.error}
             id="date-input"
-            name="date"
             label="Date"
-            {...date}
-            showErrors={hasSubmitted || date.hasBlurred}
+            name="date"
+            onBlur={e => {
+              dispatch({ type: "input:blur", name: "date" });
+            }}
+            onChange={e => {
+              e.preventDefault();
+              const value = e.target.value;
+              dispatch({ type: "input:update", name: "date", value });
+            }}
+            value={inputs.date.value}
+            showErrors={hasSubmitted || inputs.date.hasBlurred}
+            type="date"
           />
         </div>
         <div>
           <TextInput
-            type="time"
+            error={inputs.time.error}
             id="time-input"
-            name="time"
             label="Time"
-            {...time}
-            showErrors={hasSubmitted || time.hasBlurred}
+            name="time"
+            onBlur={e => {
+              dispatch({ type: "input:blur", name: "time" });
+            }}
+            onChange={e => {
+              e.preventDefault();
+              const value = e.target.value;
+              dispatch({ type: "input:update", name: "time", value });
+            }}
+            value={inputs.time.value}
+            showErrors={hasSubmitted || inputs.time.hasBlurred}
+            type="time"
           />
         </div>
         {/*
@@ -123,10 +135,12 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
           </header>
           <div className="mt-2 sm:mt-4">
             <Checkbox
+              checked={inputs.signature.value}
+              error={inputs.signature.error}
               id="accept-input"
-              name="accept"
               label="I, John Hooks, accept and digitally sign this form"
-              {...accepted}
+              name="signature"
+              onChange={handleSignatureToggle}
               showErrors={hasSubmitted}
             />
           </div>
@@ -142,15 +156,4 @@ export function InspectForm<Item extends InspectItem, Detail extends DetailItemP
       </form>
     </>
   );
-}
-
-interface WithValidator {
-  validate?: (() => boolean) | null;
-}
-
-function validate(...args: WithValidator[]): boolean {
-  for (const { validate } of args) {
-    if (!(validate && validate())) return false;
-  }
-  return true;
 }

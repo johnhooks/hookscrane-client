@@ -1,29 +1,29 @@
-import type { PropsWithChildren } from "react";
+import type { ChangeEventHandler, MouseEventHandler, PropsWithChildren } from "react";
 
-import type { UseCheckboxState } from "hooks/use-checkbox-state";
+import type { Nullish } from "lib/interfaces";
 
-interface CheckboxProps {
-  id: string;
-  name: string;
-  label: string;
+export interface Props {
+  checked: boolean;
   description?: string;
+  error?: string | Nullish;
+  id: string;
+  label: string;
+  name: string;
+  onChange: ChangeEventHandler;
   showErrors?: boolean;
 }
 
-export type Props = Omit<UseCheckboxState, "error"> & CheckboxProps & { error?: string | null };
-
 export function Checkbox({
-  id,
-  name,
-  label,
   checked,
-  onChange,
   description,
   error,
+  id,
+  label,
+  name,
+  onChange,
   showErrors,
 }: PropsWithChildren<Props>) {
   const invalid = Boolean(showErrors && error);
-
   return (
     <div className="relative flex items-start">
       <div className="flex items-center h-5">

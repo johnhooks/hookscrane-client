@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { ApolloClient, ApolloLink, InMemoryCache, HttpLink, NormalizedCacheObject, Operation } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import merge from "deepmerge";
@@ -7,6 +7,7 @@ import { isEqual } from "lodash-es";
 import type { Maybe } from "./interfaces";
 import type { AccessToken } from "./access-token";
 import { API_ENDPOINT, LOCAL_API_ENDPOINT } from "./constants";
+import { logger } from "./logger";
 
 export const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 
@@ -57,9 +58,9 @@ function createApolloClient(accessToken: Maybe<AccessToken>) {
       onError(({ graphQLErrors, networkError }) => {
         if (graphQLErrors)
           graphQLErrors.forEach(({ message, locations, path }) =>
-            console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`)
+            logger.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`)
           );
-        if (networkError) console.log(`[Network error]: ${networkError}. Backend is unreachable. Is it running?`);
+        if (networkError) logger.error(`[Network error]: ${networkError}. Backend is unreachable. Is it running?`);
       }),
       authMiddleware(accessToken),
       createIsomorphLink(),

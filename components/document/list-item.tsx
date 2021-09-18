@@ -12,7 +12,7 @@ export function ListItem({ datetime, id, pass, type }: PropsWithChildren<Props>)
 
   switch (type) {
     case "INSPECT_VEHICLE_DAILY":
-      title = "Daily Vehicle Inspection";
+      title = "Driver-Vehicle Inspection Report";
       break;
     case "INSPECT_CRANE_FREQUENT":
       title = "Frequent Crane Inspection";

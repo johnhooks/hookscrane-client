@@ -2,7 +2,7 @@ import type { ChangeEvent, FocusEvent } from "react";
 import { useReducer } from "react";
 
 import type { Nullish } from "lib/interfaces";
-import type { TextValidator } from "helpers/validators";
+import type { Validator } from "lib/interfaces/form";
 
 interface State {
   hasBlurred: boolean;
@@ -23,7 +23,7 @@ export interface UseTextInputState extends State {
   validate: () => boolean;
 }
 
-export function useTextInputState(initialState: InitialState, validator: TextValidator): UseTextInputState {
+export function useTextInputState(initialState: InitialState, validator: Validator): UseTextInputState {
   const [state, dispatch] = useReducer(reducer, {
     ...initialState,
     error: initialState.error ?? null,

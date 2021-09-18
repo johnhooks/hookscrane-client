@@ -2,7 +2,7 @@ import type { ChangeEvent } from "react";
 import { useState } from "react";
 
 import type { Nullish } from "lib/interfaces";
-import type { Validator } from "helpers/validators";
+import type { Validator } from "lib/interfaces/form";
 
 interface State {
   checked: boolean;
